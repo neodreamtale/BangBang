@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { appConfig } from "@/config/app.config";
 
 import { Geist, Noto_Sans_SC } from "next/font/google";
 
@@ -16,11 +17,11 @@ const notoSansSC = Noto_Sans_SC({
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Acme Dashboard',
-    default: 'Acme Dashboard',
+    template: `%s | ${appConfig.site.name}`,
+    default: appConfig.site.name,
   },
-  description: 'The official Next.js Learn Dashboard built with App Router.',
-  metadataBase: new URL('https://next-learn-dashboard.vercel.sh'),
+  description: appConfig.site.description,
+  metadataBase: new URL(appConfig.site.url),
 };
 
 
