@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "analyze-unused": "npx tsx scripts/analyze-unused-files.ts",
+    "clean-unused": "npx tsx scripts/clean-unused-files.ts"
+  }
+}

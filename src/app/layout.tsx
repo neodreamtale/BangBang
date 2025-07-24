@@ -22,6 +22,15 @@ export const metadata: Metadata = {
   },
   description: appConfig.site.description,
   metadataBase: new URL(appConfig.site.url),
+  icons: {
+    icon: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+    apple: '/apple-touch-icon.svg',
+  },
 };
 
 

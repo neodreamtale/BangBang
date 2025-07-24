@@ -1,4 +1,4 @@
-import appConfigJson from './app.config.json';
+import staticConf from './app.config.json';
 
 // 获取当前环境
 const getEnvironment = (): 'development' | 'production' => {
@@ -8,16 +8,16 @@ const getEnvironment = (): 'development' | 'production' => {
 // 合并配置
 export const getAppConfig = () => {
   const env = getEnvironment();
-  const envConfig = appConfigJson.environments[env];
+  const envConfig = staticConf.environments[env];
   
   return {
-    ...appConfigJson,
+    ...staticConf,
     site: {
-      ...appConfigJson.site,
+      ...staticConf.site,
       url: process.env.NEXT_PUBLIC_SITE_URL || envConfig.siteUrl,
     },
     api: {
-      ...appConfigJson.api,
+      ...staticConf.api,
       baseUrl: process.env.NEXT_PUBLIC_API_URL || envConfig.apiUrl,
     },
     environment: env,
