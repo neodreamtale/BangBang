@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "scanNoUse": "npx tsx scripts/analyze-unused-files.ts & npx tsx scripts/clean-unused-files.ts"
+    "analyze-files": "npx tsx scripts/analyze-unused-files.ts",
+    "clean-files": "npx tsx scripts/clean-unused-files.ts",
+    "manage-files": "npx tsx scripts/manage-files.ts"
   },
   "dependencies": {
     "@types/glob": "^8.1.0",
