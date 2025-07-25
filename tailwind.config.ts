@@ -11,26 +11,18 @@ export default {
     theme: {
         extend: {
             colors: {
-                // 背景色系
-                primary: "var(--color-bg-primary)",
-                secondary: "var(--color-bg-secondary)",
-                card: "var(--color-bg-card)",
+                // 语义化颜色 - 自动响应主题
+                primary: 'var(--color-bg-primary)',
+                secondary: 'var(--color-bg-secondary)',
+                card: 'var(--color-card-bg)',
 
                 // 文字色系  
-                text: {
-                    primary: "var(--color-text-primary)",
-                    secondary: "var(--color-text-secondary)",
-                },
+                'text-primary': 'var(--color-text-primary)',
+                'text-secondary': 'var(--color-text-secondary)',
 
                 // 边框色系
-                border: {
-                    default: "var(--color-border-default)",
-                },
-
-                // 保持原有变量兼容性
-                background: "var(--background)",
-                foreground: "var(--foreground)",
-            },
+                'border-default': 'var(--color-border)',
+            }
         },
     },
     plugins: [],

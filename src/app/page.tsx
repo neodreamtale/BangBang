@@ -13,6 +13,9 @@ export default function Home() {
       {/* 主题切换按钮 - 固定在右上角 */}
       <div className="fixed top-4 right-4 z-10 flex items-center gap-2">
         <ThemeToggle />
+        <span className="text-xs px-2 py-1 rounded bg-secondary text-text-secondary">
+          {theme}
+        </span>
       </div>
 
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
@@ -46,14 +49,14 @@ export default function Home() {
         </div>
 
         {process.env.NODE_ENV === 'development' && (
-          <Link className="rounded-full border border-gray-300 dark:border-gray-600 transition-colors flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-800 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto text-gray-700 dark:text-gray-300"
+          <Link className="rounded-full border transition-colors flex items-center justify-center hover:bg-secondary font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto border-border-default text-text-secondary"
             href="/icons">
             查看图标库
           </Link>
         )}
       </main>
 
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center text-sm text-text-secondary">
         <span>© 2025 意见反馈系统</span>
         <span>·</span>
         <span>帮助改进产品体验</span>

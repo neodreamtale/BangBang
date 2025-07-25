@@ -16,21 +16,33 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // 初始化主题
     useEffect(() => {
-        // 简单直接的初始化
-        const savedTheme = localStorage.getItem('theme') as Theme
-        const initialTheme = savedTheme === 'dark' ? 'dark' : 'light'
+        // 检查保存的主题偏好
+        const savedTheme = localStorage.getItem('theme') as Theme | null
+        const initialTheme = savedTheme || 'light'
 
         setTheme(initialTheme)
-        document.documentElement.className = initialTheme
+
+        // Tailwind标准：添加或移除dark类
+        if (initialTheme === 'dark') {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
 
         console.log('Theme initialized:', initialTheme)
     }, [])
 
     // 应用主题变化
     useEffect(() => {
-        document.documentElement.className = theme
+        // Tailwind标准：根据主题添加或移除dark类
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+
         localStorage.setItem('theme', theme)
-        console.log('Theme applied:', theme, 'HTML class:', document.documentElement.className)
+        console.log('Theme applied:', theme, 'Has dark class:', document.documentElement.classList.contains('dark'))
     }, [theme])
 
     const toggleTheme = () => {
