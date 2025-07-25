@@ -1,26 +1,55 @@
 @import "tailwindcss";
 
+/* 定义全局CSS变量 */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 浅色主题变量 */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-card-bg: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* 暗色主题变量 */
+.dark {
+  --color-bg-primary: #111827;
+  --color-bg-secondary: #1f2937;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-border: #374151;
+  --color-card-bg: #1f2937;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 应用变量到全局样式 */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   font-family: var(--font-geist-sans), var(--font-chinese), sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 定义通用类 */
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}
+
+.bg-card {
+  background-color: var(--color-card-bg);
+}
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.border-default {
+  border-color: var(--color-border);
 }

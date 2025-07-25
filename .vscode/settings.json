@@ -1,0 +1,42 @@
+{
+  // Tailwind CSS IntelliSense 配置
+  "tailwindCSS.includeLanguages": {
+    "typescript": "html",
+    "typescriptreact": "html",
+    "javascript": "html",
+    "javascriptreact": "html"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    [
+      "cva\\(([^)]*)\\)",
+      "[\"'`]([^\"'`]*).*?[\"'`]"
+    ],
+    [
+      "cx\\(([^)]*)\\)",
+      "(?:'|\"|`)([^']*)(?:'|\"|`)"
+    ]
+  ],
+  // 启用 Tailwind 类名的自动补全
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  // 在字符串中启用自动补全
+  "editor.inlineSuggest.enabled": true,
+  // CSS 类名悬停预览
+  "css.hover.documentation": true,
+  // 自动保存时格式化
+  "editor.formatOnSave": true,
+  // Tailwind 类名排序（需要 Headwind 插件）
+  "headwind.runOnSave": true,
+  // 文件关联
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  // Emmet 支持
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "typescriptreact": "html",
+    "javascript": "html",
+    "javascriptreact": "html"
+  }
+}

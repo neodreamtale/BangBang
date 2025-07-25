@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { appConfig } from "@/config/app.config";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 import { Geist, Noto_Sans_SC } from "next/font/google";
 
@@ -41,8 +42,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${notoSansSC.variable}  antialiased`}>
-        {children}
+      <body className={`${geistSans.variable} ${notoSansSC.variable} antialiased`}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
