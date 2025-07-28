@@ -442,7 +442,7 @@ export async function getBidlinkAppInfo(): Promise<any> {
 /**
  * 启用调试模式（仅开发环境）
  */
-export function enableBidlinkDebugMode(): void {
+export function enableDebugMode(): void {
     if (process.env.NODE_ENV === 'development') {
         localStorage.setItem('bidlink-debug-mode', 'true');
         console.log('🔧 Bidlink 调试模式已启用');
@@ -472,6 +472,7 @@ export function disableBidlinkDebugMode(): void {
 export function getBidlinkDebugStatus(): {
     isDebugMode: boolean;
     isBidlinkDetected: boolean;
+    mockInterfaceAvailable: boolean;
 } {
     const isDebugMode = process.env.NODE_ENV === 'development' &&
         localStorage.getItem('bidlink-debug-mode') === 'true';
@@ -479,6 +480,7 @@ export function getBidlinkDebugStatus(): {
     return {
         isDebugMode,
         isBidlinkDetected: isBidlinkApp(),
+        mockInterfaceAvailable: typeof (window as any).MockAndroid !== 'undefined'
     };
 }
 
@@ -541,4 +543,61 @@ function setupMockAndroidInterface(): void {
     (window as any).Android = mockAndroid;
 
     console.log('🔧 模拟 Android 接口已设置', mockAndroid);
+}
+
+/**
+ * 初始化全局调试命令（开发环境）
+ */
+export function initBidlinkDebugCommands(): void {
+    if (process.env.NODE_ENV !== 'development') return;
+
+    // 将调试函数挂载到全局 window 对象
+    (window as any).enableDebugMode = enableDebugMode;
+    (window as any).disableBidlinkDebugMode = disableBidlinkDebugMode;
+    (window as any).getBidlinkDebugStatus = getBidlinkDebugStatus;
+    (window as any).uploadAllExceptionLogs = uploadAllExceptionLogs;
+
+    // 添加调试面板控制命令
+    (window as any).showDebugPanel = () => {
+        window.dispatchEvent(new CustomEvent('showDebugPanel'));
+        console.log('🔧 显示 Bidlink 调试面板');
+    };
+
+    (window as any).hideDebugPanel = () => {
+        window.dispatchEvent(new CustomEvent('hideDebugPanel'));
+        console.log('🔧 隐藏 Bidlink 调试面板');
+    };
+
+    // 显示可用命令
+    (window as any).bidlinkHelp = () => {
+        console.log(`
+🔧 Bidlink 调试命令:
+
+面板控制:
+  showDebugPanel()     - 显示调试面板
+  hideDebugPanel()     - 隐藏调试面板  
+
+调试模式:
+  enableDebugMode()    - 启用调试模式
+  disableBidlinkDebugMode()   - 禁用调试模式
+  getBidlinkDebugStatus()     - 获取调试状态
+
+功能测试:
+  uploadAllExceptionLogs()    - 测试日志上传
+  
+帮助:
+  bidlinkHelp()              - 显示此帮助信息
+        `);
+    };
+
+    console.log(`
+🔧 Bidlink 调试命令已初始化！
+
+快速开始:
+  showDebugPanel()   - 显示/隐藏调试面板
+  enableDebugMode()    - 启用调试模式
+  bidlinkHelp()              - 查看所有命令
+
+在任何页面的控制台中运行上述命令即可使用调试功能。
+    `);
 }

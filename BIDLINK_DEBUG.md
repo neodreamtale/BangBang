@@ -14,7 +14,7 @@
 ### 方法2: 使用浏览器控制台
 打开浏览器控制台，运行：
 ```javascript
-enableBidlinkDebugMode()
+enableDebugMode()
 ```
 
 ### 方法3: 手动设置 localStorage
@@ -37,10 +37,6 @@ localStorage.setItem('bidlink-debug-mode', 'true')
 ### 测试异常日志上传
 1. 确保调试模式已启用
 2. 在调试面板中点击"测试日志上传"按钮
-3. 或在控制台运行：
-```javascript
-uploadAllExceptionLogs().then(result => console.log(result))
-```
 
 ## 调试面板功能
 

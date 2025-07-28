@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { appConfig } from "@/config/app.config";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import DebugInitializer from "@/components/DebugInitializer";
 
 import { Geist, Noto_Sans_SC } from "next/font/google";
 
@@ -46,6 +47,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
         </ThemeProvider>
+        <DebugInitializer />
       </body>
     </html>
   );
