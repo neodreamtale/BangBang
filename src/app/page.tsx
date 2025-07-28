@@ -28,24 +28,24 @@ export default function Home() {
           帮助我们改进产品体验，您的每一个反馈都很重要
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl">
-          <div className="flex flex-col items-center p-6 border border-default rounded-lg hover:shadow-md transition-shadow bg-card">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl">
+          <Link href="/feedback/bug" className="flex flex-col items-center p-6 border border-default rounded-lg hover:shadow-md transition-all duration-200 bg-card hover:scale-105 hover:border-red-500/30 cursor-pointer">
             <Bug size={32} className="text-red-500 mb-3" />
             <h3 className="font-semibold mb-2">Bug反馈</h3>
             <p className="text-sm text-secondary text-center">报告程序错误和问题</p>
-          </div>
+          </Link>
 
-          <div className="flex flex-col items-center p-6 border border-default rounded-lg hover:shadow-md transition-shadow bg-card">
+          <Link href="/feedback/suggestion" className="flex flex-col items-center p-6 border border-default rounded-lg hover:shadow-md transition-all duration-200 bg-card hover:scale-105 hover:border-blue-500/30 cursor-pointer">
             <AlertCircle size={32} className="text-blue-500 mb-3" />
             <h3 className="font-semibold mb-2">改进建议</h3>
             <p className="text-sm text-secondary text-center">优化现有功能体验</p>
-          </div>
+          </Link>
 
-          <div className="flex flex-col items-center p-6 border border-default rounded-lg hover:shadow-md transition-shadow bg-card">
+          {/* <Link href="/feedback/general" className="flex flex-col items-center p-6 border border-default rounded-lg hover:shadow-md transition-all duration-200 bg-card hover:scale-105 hover:border-green-500/30 cursor-pointer">
             <MessageSquare size={32} className="text-green-500 mb-3" />
             <h3 className="font-semibold mb-2">其他反馈</h3>
             <p className="text-sm text-secondary text-center">其他意见和建议</p>
-          </div>
+          </Link> */}
         </div>
 
         {process.env.NODE_ENV === 'development' && (
