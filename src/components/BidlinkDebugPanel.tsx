@@ -73,12 +73,6 @@ export default function BidlinkDebugPanel() {
                             {debugStatus.isBidlinkDetected ? '已检测' : '未检测'}
                         </span>
                     </div>
-                    <div className="flex justify-between">
-                        <span>模拟接口:</span>
-                        <span className={debugStatus.mockInterfaceAvailable ? 'text-green-400' : 'text-red-400'}>
-                            {debugStatus.mockInterfaceAvailable ? '可用' : '不可用'}
-                        </span>
-                    </div>
                 </div>
 
                 {/* 控制按钮 */}
@@ -86,41 +80,13 @@ export default function BidlinkDebugPanel() {
                     <button
                         onClick={handleToggleDebugMode}
                         className={`w-full py-2 px-3 rounded text-xs font-medium ${debugStatus.isDebugMode
-                                ? 'bg-red-600 hover:bg-red-700'
-                                : 'bg-green-600 hover:bg-green-700'
+                            ? 'bg-red-600 hover:bg-red-700'
+                            : 'bg-green-600 hover:bg-green-700'
                             }`}
                     >
                         {debugStatus.isDebugMode ? '禁用调试模式' : '启用调试模式'}
                     </button>
-
-                    {debugStatus.isBidlinkDetected && (
-                        <button
-                            onClick={handleTestUpload}
-                            disabled={isUploading}
-                            className="w-full py-2 px-3 rounded text-xs font-medium bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600"
-                        >
-                            {isUploading ? '测试上传中...' : '测试日志上传'}
-                        </button>
-                    )}
                 </div>
-
-                {/* 上传结果 */}
-                {uploadResult && (
-                    <div className={`p-2 rounded text-xs ${uploadResult.success ? 'bg-green-800' : 'bg-red-800'
-                        }`}>
-                        <div className="font-medium mb-1">
-                            {uploadResult.success ? '✅ 上传成功' : '❌ 上传失败'}
-                        </div>
-                        <div className="text-xs opacity-80">
-                            {uploadResult.message}
-                        </div>
-                        {uploadResult.success && (
-                            <div className="text-xs opacity-80 mt-1">
-                                上传文件: {uploadResult.uploadedCount}/{uploadResult.totalCount}
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 {/* 使用说明 */}
                 <div className="text-xs opacity-60 border-t border-gray-600 pt-2">

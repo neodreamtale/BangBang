@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, Bug, Upload, FileText, AlertTriangle } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import BidlinkDebugPanel from "@/components/BidlinkDebugPanel";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useState, useEffect } from "react";
 import { getFormattedEnvironmentInfo, getEnvironmentInfo } from "@/utils/environmentDetector";
 import {
@@ -129,79 +127,73 @@ export default function BugFeedback() {
                     {/* Bidlink应用异常日志自动上传 */}
                     {isBidlink && (
                         <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/50">
-                            <div className="flex items-center gap-2 mb-3">
+                            <div className="flex items-center gap-2">
                                 <FileText size={20} className="text-blue-500" />
                                 <label className="block text-sm font-medium">
                                     异常日志自动上传
                                 </label>
                             </div>
 
-                            <p className="text-sm text-text-secondary mb-3">
-                                检测到您在Bidlink应用中，系统将自动获取并上传异常日志文件帮助定位问题
-                            </p>
-
-                            <div className="space-y-3">
-                                {/* 异常日志状态显示 */}
-                                <div className="bg-card rounded p-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium">异常日志状态</span>
-                                        <button
-                                            type="button"
-                                            onClick={loadExceptionLogs}
-                                            className="text-xs text-blue-500 hover:text-blue-600"
-                                        >
-                                            刷新
-                                        </button>
-                                    </div>
-
-                                    {exceptionLogs.length > 0 && (
-                                        <div className="text-xs text-text-secondary space-y-1">
-                                            {exceptionLogs.map((log, index) => (
-                                                <div key={index} className="flex justify-between">
-                                                    <span>{log.name}</span>
-                                                    <span>{(log.size / 1024).toFixed(1)} KB</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                            {/* 异常日志状态显示 */}
+                            <div className="bg-card rounded p-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">异常日志状态</span>
+                                    <button
+                                        type="button"
+                                        onClick={loadExceptionLogs}
+                                        className="text-xs text-blue-500 hover:text-blue-600"
+                                    >
+                                        刷新
+                                    </button>
                                 </div>
 
-                                {/* 自动上传控制 */}
-                                <div className="flex items-center gap-3">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={autoUploadEnabled}
-                                            onChange={(e) => setAutoUploadEnabled(e.target.checked)}
-                                            className="w-4 h-4 text-blue-500"
-                                        />
-                                        <span className="text-sm">随Bug反馈一起提交异常日志</span>
-                                    </label>
-
-                                    {exceptionLogs.length > 0 && (
-                                        <button
-                                            type="button"
-                                            onClick={handleAutoUploadLogs}
-                                            disabled={isUploading}
-                                            className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                                        >
-                                            {isUploading ? '上传中...' : '立即上传'}
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* 上传状态显示 */}
-                                {uploadStatus && (
-                                    <div className={`text-sm p-2 rounded ${uploadStatus.includes('成功')
-                                        ? 'bg-green-100 text-green-700'
-                                        : uploadStatus.includes('失败')
-                                            ? 'bg-red-100 text-red-700'
-                                            : 'bg-blue-100 text-blue-700'
-                                        }`}>
-                                        {uploadStatus}
+                                {exceptionLogs.length > 0 && (
+                                    <div className="text-xs text-text-secondary space-y-1">
+                                        {exceptionLogs.map((log, index) => (
+                                            <div key={index} className="flex justify-between">
+                                                <span>{log.name}</span>
+                                                <span>{(log.size / 1024).toFixed(1)} KB</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
+
+                            {/* 自动上传控制 */}
+                            <div className="flex items-center gap-3">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={autoUploadEnabled}
+                                        onChange={(e) => setAutoUploadEnabled(e.target.checked)}
+                                        className="w-4 h-4 text-blue-500"
+                                    />
+                                    <span className="text-sm">随Bug反馈一起提交异常日志</span>
+                                </label>
+
+                                {exceptionLogs.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleAutoUploadLogs}
+                                        disabled={isUploading}
+                                        className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                                    >
+                                        {isUploading ? '上传中...' : '立即上传'}
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* 上传状态显示 */}
+                            {uploadStatus && (
+                                <div className={`text-sm p-2 rounded ${uploadStatus.includes('成功')
+                                    ? 'bg-green-100 text-green-700'
+                                    : uploadStatus.includes('失败')
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                    {uploadStatus}
+                                </div>
+                            )}
                         </div>
                     )}
 
