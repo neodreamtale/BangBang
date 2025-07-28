@@ -99,12 +99,6 @@ export default function BidlinkDebugPanel() {
                             {debugStatus.isBidlinkDetected ? '已检测' : '未检测'}
                         </span>
                     </div>
-                    <div className="flex justify-between">
-                        <span>模拟接口:</span>
-                        <span className={debugStatus.mockInterfaceAvailable ? 'text-green-400' : 'text-red-400'}>
-                            {debugStatus.mockInterfaceAvailable ? '可用' : '不可用'}
-                        </span>
-                    </div>
                 </div>
 
                 {/* 控制按钮 */}
@@ -118,16 +112,6 @@ export default function BidlinkDebugPanel() {
                     >
                         {debugStatus.isDebugMode ? '禁用调试模式' : '启用调试模式'}
                     </button>
-
-                    {debugStatus.isBidlinkDetected && (
-                        <button
-                            onClick={handleTestUpload}
-                            disabled={isUploading}
-                            className="w-full py-2 px-3 rounded text-xs font-medium bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600"
-                        >
-                            {isUploading ? '测试上传中...' : '测试日志上传'}
-                        </button>
-                    )}
                 </div>
 
                 {/* 上传结果 */}

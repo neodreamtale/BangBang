@@ -459,7 +459,6 @@ export function disableBidlinkDebugMode(): void {
     localStorage.removeItem('bidlink-debug-mode');
     console.log('🔧 Bidlink 调试模式已禁用');
 
-    // 清除模拟接口
     if ((window as any).MockAndroid) {
         delete (window as any).MockAndroid;
         delete (window as any).Android;
@@ -581,9 +580,6 @@ export function initBidlinkDebugCommands(): void {
   enableDebugMode()    - 启用调试模式
   disableBidlinkDebugMode()   - 禁用调试模式
   getBidlinkDebugStatus()     - 获取调试状态
-
-功能测试:
-  uploadAllExceptionLogs()    - 测试日志上传
   
 帮助:
   bidlinkHelp()              - 显示此帮助信息

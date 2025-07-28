@@ -28,12 +28,11 @@ enableBidlinkDebugMode()
 ```javascript
 showDebugPanel()     // 显示调试面板
 hideDebugPanel()     // 隐藏调试面板  
-showDebugPanel()   // 切换面板显示状态
 ```
 
 ### 🔧 调试模式
 ```javascript
-enableBidlinkDebugMode()    // 启用调试模式（自动创建模拟接口）
+enableBidlinkDebugMode()    // 启用调试模式
 disableBidlinkDebugMode()   // 禁用调试模式
 getBidlinkDebugStatus()     // 查看当前调试状态
 ```
@@ -43,15 +42,6 @@ getBidlinkDebugStatus()     // 查看当前调试状态
 bidlinkHelp()              // 显示所有可用命令
 ```
 
-
-## 🔍 调试面板功能
-
-调试面板提供：
-- ✅ **实时状态监控**：调试模式、Bidlink检测、模拟接口状态
-- 🎚️ **一键开关**：快速启用/禁用调试模式
-- 📤 **测试按钮**：直接测试日志上传功能
-- 📋 **结果显示**：实时显示上传成功/失败状态
-- ❌ **关闭按钮**：可随时隐藏面板
 
 ## 🛠️ 模拟环境说明
 

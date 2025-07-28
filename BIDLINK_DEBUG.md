@@ -43,7 +43,6 @@ localStorage.setItem('bidlink-debug-mode', 'true')
 调试面板显示：
 - ✅ 调试模式状态
 - ✅ Bidlink 检测状态  
-- ✅ 模拟接口可用性
 - 📤 一键测试上传功能
 - 📋 上传结果显示
 
