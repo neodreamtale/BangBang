@@ -1,15 +1,26 @@
 'use client'
 
 import Link from "next/link";
-import { ArrowLeft, Bug } from "lucide-react";
+import { ArrowLeft, Bug, Upload, FileText, AlertTriangle } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import BidlinkDebugPanel from "@/components/BidlinkDebugPanel";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useState, useEffect } from "react";
-import { getFormattedEnvironmentInfo } from "@/utils/environmentDetector";
+import { getFormattedEnvironmentInfo, getEnvironmentInfo } from "@/utils/environmentDetector";
+import {
+    isBidlinkApp,
+    getBidlinkExceptionLogs,
+    uploadAllExceptionLogs,
+    type BidlinkFileInfo
+} from "@/utils/bidlinkFileInterface";
 
 export default function BugFeedback() {
-    const { theme } = useTheme();
     const [environmentInfo, setEnvironmentInfo] = useState<string>('正在检测环境信息...');
+    const [isBidlink, setIsBidlink] = useState<boolean>(false);
+    const [exceptionLogs, setExceptionLogs] = useState<BidlinkFileInfo[]>([]);
+    const [uploadStatus, setUploadStatus] = useState<string>('');
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    const [autoUploadEnabled, setAutoUploadEnabled] = useState<boolean>(true);
 
     useEffect(() => {
         // 自动获取环境信息
@@ -18,9 +29,58 @@ export default function BugFeedback() {
         }).catch(() => {
             setEnvironmentInfo('无法检测环境信息');
         });
+
+        // 检查是否在Bidlink应用中
+        getEnvironmentInfo().then(envInfo => {
+            const inBidlinkApp = envInfo.isBidlinkApp || isBidlinkApp();
+            setIsBidlink(inBidlinkApp);
+
+            if (inBidlinkApp) {
+                loadExceptionLogs();
+            }
+        });
     }, []);
 
-    return (
+    const loadExceptionLogs = async () => {
+        try {
+            const logs = await getBidlinkExceptionLogs();
+            setExceptionLogs(logs);
+
+            if (logs.length > 0) {
+                setUploadStatus(`发现 ${logs.length} 个异常日志文件，可随Bug反馈一起提交`);
+            } else {
+                setUploadStatus('未发现异常日志文件');
+            }
+        } catch (error) {
+            console.error('Failed to load exception logs:', error);
+            setUploadStatus('获取异常日志失败');
+        }
+    };
+
+    const handleAutoUploadLogs = async () => {
+        if (exceptionLogs.length === 0) {
+            setUploadStatus('没有异常日志需要上传');
+            return;
+        }
+
+        setIsUploading(true);
+        setUploadStatus('正在自动上传异常日志...');
+
+        try {
+            const result = await uploadAllExceptionLogs();
+            setUploadStatus(result.message);
+
+            if (result.success && result.uploadedCount > 0) {
+                // 上传成功后重新检查异常日志
+                await loadExceptionLogs();
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            setUploadStatus(`上传失败: ${errorMessage}`);
+        } finally {
+            setIsUploading(false);
+        }
+    }; return (
         <div className="font-sans min-h-screen p-8 pb-20 sm:p-20">
             <div className="max-w-2xl mx-auto">
                 {/* 返回按钮 */}
@@ -66,6 +126,85 @@ export default function BugFeedback() {
                         />
                     </div>
 
+                    {/* Bidlink应用异常日志自动上传 */}
+                    {isBidlink && (
+                        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/50">
+                            <div className="flex items-center gap-2 mb-3">
+                                <FileText size={20} className="text-blue-500" />
+                                <label className="block text-sm font-medium">
+                                    异常日志自动上传
+                                </label>
+                            </div>
+
+                            <p className="text-sm text-text-secondary mb-3">
+                                检测到您在Bidlink应用中，系统将自动获取并上传异常日志文件帮助定位问题
+                            </p>
+
+                            <div className="space-y-3">
+                                {/* 异常日志状态显示 */}
+                                <div className="bg-card rounded p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium">异常日志状态</span>
+                                        <button
+                                            type="button"
+                                            onClick={loadExceptionLogs}
+                                            className="text-xs text-blue-500 hover:text-blue-600"
+                                        >
+                                            刷新
+                                        </button>
+                                    </div>
+
+                                    {exceptionLogs.length > 0 && (
+                                        <div className="text-xs text-text-secondary space-y-1">
+                                            {exceptionLogs.map((log, index) => (
+                                                <div key={index} className="flex justify-between">
+                                                    <span>{log.name}</span>
+                                                    <span>{(log.size / 1024).toFixed(1)} KB</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* 自动上传控制 */}
+                                <div className="flex items-center gap-3">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={autoUploadEnabled}
+                                            onChange={(e) => setAutoUploadEnabled(e.target.checked)}
+                                            className="w-4 h-4 text-blue-500"
+                                        />
+                                        <span className="text-sm">随Bug反馈一起提交异常日志</span>
+                                    </label>
+
+                                    {exceptionLogs.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleAutoUploadLogs}
+                                            disabled={isUploading}
+                                            className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                                        >
+                                            {isUploading ? '上传中...' : '立即上传'}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* 上传状态显示 */}
+                                {uploadStatus && (
+                                    <div className={`text-sm p-2 rounded ${uploadStatus.includes('成功')
+                                        ? 'bg-green-100 text-green-700'
+                                        : uploadStatus.includes('失败')
+                                            ? 'bg-red-100 text-red-700'
+                                            : 'bg-blue-100 text-blue-700'
+                                        }`}>
+                                        {uploadStatus}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     <div>
                         <label htmlFor="contact" className="block text-sm font-medium mb-2">
                             联系方式
@@ -94,6 +233,9 @@ export default function BugFeedback() {
                     </div>
                 </form>
             </div>
+
+            {/* 调试面板（仅开发环境显示） */}
+            <BidlinkDebugPanel />
         </div>
     );
 }

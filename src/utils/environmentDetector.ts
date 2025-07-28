@@ -13,9 +13,9 @@ interface EnvironmentInfo {
     timezone: string;
     isWebView: boolean;
     webViewType?: string;
-}
-
-/**
+    appPackage?: string;
+    isBidlinkApp?: boolean;
+}/**
  * 检测浏览器信息
  */
 function detectBrowser(): { browser: string; version: string } {
@@ -88,8 +88,17 @@ function detectOS(): string {
 /**
  * 检测是否在WebView中
  */
-function detectWebView(): { isWebView: boolean; webViewType?: string } {
+function detectWebView(): { isWebView: boolean; webViewType?: string; appPackage?: string } {
     const userAgent = navigator.userAgent;
+
+    // 检测您的应用 com.bidlink.cn
+    if (/BidlinkApp/i.test(userAgent) || checkBidlinkApp()) {
+        return {
+            isWebView: true,
+            webViewType: 'Bidlink App WebView',
+            appPackage: 'com.bidlink.cn'
+        };
+    }
 
     // Android WebView
     if (/wv\)/i.test(userAgent)) {
@@ -120,6 +129,14 @@ function detectWebView(): { isWebView: boolean; webViewType?: string } {
 }
 
 /**
+ * 检测是否在Bidlink应用中
+ */
+function checkBidlinkApp(): boolean {
+    // 检查是否有Bidlink应用注入的接口
+    return typeof (window as any).BidlinkInterface !== 'undefined' ||
+        typeof (window as any).Android !== 'undefined' ||
+        (window as any).isBidlinkApp === true;
+}/**
  * 获取屏幕信息
  */
 function getScreenInfo(): string {
@@ -135,14 +152,6 @@ function getScreenInfo(): string {
  */
 function getNativeAppInfo(): Promise<any> {
     return new Promise((resolve) => {
-        // 检查是否有原生应用注入的接口
-        const nativeInterfaces = [
-            'AndroidInterface',  // 安卓原生接口
-            'webkit.messageHandlers.iosInterface',  // iOS原生接口
-            'window.ReactNativeWebView',  // React Native WebView
-            'window.flutter_inappwebview'  // Flutter WebView
-        ];
-
         let nativeInfo = {};
 
         // 尝试调用原生接口获取更详细信息
@@ -181,7 +190,7 @@ function getNativeAppInfo(): Promise<any> {
 export async function getEnvironmentInfo(): Promise<EnvironmentInfo> {
     const { browser, version } = detectBrowser();
     const os = detectOS();
-    const { isWebView, webViewType } = detectWebView();
+    const { isWebView, webViewType, appPackage } = detectWebView();
     const screen = getScreenInfo();
 
     // 尝试获取原生应用信息
@@ -197,7 +206,9 @@ export async function getEnvironmentInfo(): Promise<EnvironmentInfo> {
         language: navigator.language,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         isWebView,
-        webViewType
+        webViewType,
+        appPackage,
+        isBidlinkApp: appPackage === 'com.bidlink.cn'
     };
 
     // 如果有原生信息，合并进去
@@ -206,9 +217,7 @@ export async function getEnvironmentInfo(): Promise<EnvironmentInfo> {
     }
 
     return envInfo;
-}
-
-/**
+}/**
  * 格式化环境信息为用户友好的字符串
  */
 export function formatEnvironmentInfo(envInfo: EnvironmentInfo): string {
