@@ -55,6 +55,9 @@ Dockerfile
 .dockerignore
 docker-compose*.yml
 
+# Dev Container 配置（生产环境不需要）
+.devcontainer/
+
 # Git
 .git/
 .gitignore
