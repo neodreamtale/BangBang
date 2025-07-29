@@ -7,13 +7,11 @@ WORKDIR /app
 
 # 安装依赖
 FROM base AS deps
-# 复制 package 文件
 COPY package.json package-lock.json* ./
 RUN npm ci --only=production
 
 # 构建应用
 FROM base AS builder
-WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
@@ -27,8 +25,6 @@ RUN npm run build
 
 # 生产镜像，复制所有文件并运行 Next.js
 FROM base AS runner
-WORKDIR /app
-
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
