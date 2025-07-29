@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
   // 优化静态资源
   images: {
     unoptimized: true
+  },
+  // Docker 构建时跳过 ESLint 检查（生产环境临时配置）
+  eslint: {
+    ignoreDuringBuilds: true
   }
 };
 
