@@ -9,7 +9,14 @@
     "lint": "next lint",
     "analyze-files": "npx tsx scripts/analyze-unused-files.ts",
     "clean-files": "npx tsx scripts/clean-unused-files.ts",
-    "manage-files": "npx tsx scripts/manage-files.ts"
+    "manage-files": "npx tsx scripts/manage-files.ts",
+    "docker:build": "docker build -t punch-feedback-app .",
+    "docker:run": "docker run -p 3000:3000 punch-feedback-app",
+    "docker:dev": "docker-compose up --build",
+    "docker:prod": "docker-compose up -d --build",
+    "docker:logs": "docker logs punch-app",
+    "docker:stop": "docker stop punch-app",
+    "docker:clean": "docker system prune -f"
   },
   "dependencies": {
     "@types/glob": "^8.1.0",

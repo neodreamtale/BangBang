@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  punch-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: punch-feedback-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    restart: unless-stopped
+    
+  # 可选：添加 Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: punch-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # 如果有 SSL 证书
+    depends_on:
+      - punch-app
+    restart: unless-stopped
+    profiles:
+      - proxy  # 使用 --profile proxy 来启用 nginx

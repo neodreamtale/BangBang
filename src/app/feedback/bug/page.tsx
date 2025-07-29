@@ -1,7 +1,7 @@
 'use client'
 
 import Link from "next/link";
-import { ArrowLeft, Bug, Upload, FileText, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Bug, FileText } from "lucide-react";
 import BidlinkDebugPanel from "@/components/BidlinkDebugPanel";
 import { useState, useEffect } from "react";
 import { getFormattedEnvironmentInfo, getEnvironmentInfo } from "@/utils/environmentDetector";
@@ -126,7 +126,7 @@ export default function BugFeedback() {
 
                     {/* Bidlink应用异常日志自动上传 */}
                     {isBidlink && (
-                        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50/50">
+                        <div className="border border-blue-200 rounded-lg p-4 ">
                             <div className="flex items-center gap-2">
                                 <FileText size={20} className="text-blue-500" />
                                 <label className="block text-sm font-medium">

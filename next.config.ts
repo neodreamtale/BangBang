@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
     'http://localhost:3000',
     'http://127.0.0.1:3000',
   ],
+  // Docker 部署配置
+  output: 'standalone',
+  // 优化静态资源
+  images: {
+    unoptimized: true
+  }
 };
 
 export default nextConfig;
