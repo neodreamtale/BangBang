@@ -7,15 +7,6 @@
   "api": {
     "timeout": 10000
   },
-  "features": {
-    "enableCrashReporting": true,
-    "maxFileSize": 10485760
-  },
-  "feedback": {
-    "categories": ["bug", "feature", "improvement", "other"],
-    "priorities": ["low", "medium", "high", "critical"],
-    "maxAttachments": 5
-  },
   "environments": {
     "development": {
       "siteUrl": "http://localhost:3000",

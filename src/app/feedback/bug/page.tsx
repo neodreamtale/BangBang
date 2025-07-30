@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, Bug, FileText } from "lucide-react";
 import BidlinkDebugPanel from "@/components/BidlinkDebugPanel";
 import { useState, useEffect } from "react";
-import { getFormattedEnvironmentInfo, getEnvironmentInfo } from "@/utils/environmentDetector";
+import { getEnvironmentInfo } from "@/utils/environmentDetector";
 import {
     isBidlinkApp,
     getBidlinkExceptionLogs,
@@ -13,7 +13,6 @@ import {
 } from "@/utils/bidlinkFileInterface";
 
 export default function BugFeedback() {
-    const [environmentInfo, setEnvironmentInfo] = useState<string>('正在检测环境信息...');
     const [isBidlink, setIsBidlink] = useState<boolean>(false);
     const [exceptionLogs, setExceptionLogs] = useState<BidlinkFileInfo[]>([]);
     const [uploadStatus, setUploadStatus] = useState<string>('');
@@ -21,13 +20,6 @@ export default function BugFeedback() {
     const [autoUploadEnabled, setAutoUploadEnabled] = useState<boolean>(true);
 
     useEffect(() => {
-        // 自动获取环境信息
-        getFormattedEnvironmentInfo().then(info => {
-            setEnvironmentInfo(info);
-        }).catch(() => {
-            setEnvironmentInfo('无法检测环境信息');
-        });
-
         // 检查是否在Bidlink应用中
         getEnvironmentInfo().then(envInfo => {
             const inBidlinkApp = envInfo.isBidlinkApp || isBidlinkApp();

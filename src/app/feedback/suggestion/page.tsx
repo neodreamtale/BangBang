@@ -5,20 +5,10 @@ import { ArrowLeft, AlertCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useState, useEffect } from "react";
-import { getFormattedEnvironmentInfo } from "@/utils/environmentDetector";
 
 export default function SuggestionFeedback() {
     const { theme } = useTheme();
     const [environmentInfo, setEnvironmentInfo] = useState<string>('正在检测环境信息...');
-
-    useEffect(() => {
-        // 自动获取环境信息
-        getFormattedEnvironmentInfo().then(info => {
-            setEnvironmentInfo(info);
-        }).catch(() => {
-            setEnvironmentInfo('无法检测环境信息');
-        });
-    }, []);
 
     return (
         <div className="font-sans min-h-screen p-8 pb-20 sm:p-20">

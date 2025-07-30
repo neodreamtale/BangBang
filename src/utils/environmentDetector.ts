@@ -1,21 +1,15 @@
-/**
- * 环境信息检测工具
- */
-
 interface EnvironmentInfo {
     userAgent: string;
     browser: string;
     version: string;
     os: string;
-    platform: string;
     screen: string;
-    language: string;
-    timezone: string;
     isWebView: boolean;
     webViewType?: string;
     appPackage?: string;
-    isBidlinkApp?: boolean;
-}/**
+}
+
+/**
  * 检测浏览器信息
  */
 function detectBrowser(): { browser: string; version: string } {
@@ -132,11 +126,11 @@ function detectWebView(): { isWebView: boolean; webViewType?: string; appPackage
  * 检测是否在Bidlink应用中
  */
 function checkBidlinkApp(): boolean {
-    // 检查是否有Bidlink应用注入的接口
-    return typeof (window as any).BidlinkInterface !== 'undefined' ||
-        typeof (window as any).Android !== 'undefined' ||
-        (window as any).isBidlinkApp === true;
-}/**
+    // 检查是否有 bidlinkSupport 接口
+    return typeof window.bidlinkSupport !== 'undefined';
+}
+
+/**
  * 获取屏幕信息
  */
 function getScreenInfo(): string {
@@ -144,44 +138,6 @@ function getScreenInfo(): string {
     const devicePixelRatio = window.devicePixelRatio || 1;
 
     return `${screen.width}x${screen.height} (${devicePixelRatio}x)`;
-}
-
-/**
- * 尝试从原生应用获取额外信息
- * 这些方法需要原生应用注入相应的JavaScript接口
- */
-function getNativeAppInfo(): Promise<any> {
-    return new Promise((resolve) => {
-        let nativeInfo = {};
-
-        // 尝试调用原生接口获取更详细信息
-        try {
-            // 安卓接口示例
-            if (typeof (window as any).AndroidInterface !== 'undefined') {
-                const androidInterface = (window as any).AndroidInterface;
-                if (typeof androidInterface.getDeviceInfo === 'function') {
-                    nativeInfo = {
-                        ...nativeInfo,
-                        android: androidInterface.getDeviceInfo()
-                    };
-                }
-            }
-
-            // iOS接口示例
-            if (typeof (window as any).webkit?.messageHandlers?.iosInterface !== 'undefined') {
-                // iOS通常通过消息传递，这里是示例
-                (window as any).webkit.messageHandlers.iosInterface.postMessage({
-                    action: 'getDeviceInfo'
-                });
-            }
-
-        } catch (error) {
-            console.log('Native interface not available or error:', error);
-        }
-
-        // 设置超时，避免无限等待
-        setTimeout(() => resolve(nativeInfo), 100);
-    });
 }
 
 /**
@@ -193,53 +149,18 @@ export async function getEnvironmentInfo(): Promise<EnvironmentInfo> {
     const { isWebView, webViewType, appPackage } = detectWebView();
     const screen = getScreenInfo();
 
-    // 尝试获取原生应用信息
-    const nativeInfo = await getNativeAppInfo();
-
     const envInfo: EnvironmentInfo = {
         userAgent: navigator.userAgent,
         browser,
         version,
         os,
-        platform: navigator.platform,
         screen,
-        language: navigator.language,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         isWebView,
         webViewType,
-        appPackage,
-        isBidlinkApp: appPackage === 'com.bidlink.cn'
+        appPackage
     };
 
-    // 如果有原生信息，合并进去
-    if (Object.keys(nativeInfo).length > 0) {
-        (envInfo as any).nativeInfo = nativeInfo;
-    }
-
     return envInfo;
-}/**
- * 格式化环境信息为用户友好的字符串
- */
-export function formatEnvironmentInfo(envInfo: EnvironmentInfo): string {
-    const parts = [
-        `${envInfo.browser} ${envInfo.version}`,
-        envInfo.os,
-        `屏幕: ${envInfo.screen}`,
-        `语言: ${envInfo.language}`,
-        `时区: ${envInfo.timezone}`
-    ];
-
-    if (envInfo.isWebView && envInfo.webViewType) {
-        parts.push(`WebView: ${envInfo.webViewType}`);
-    }
-
-    return parts.join(' | ');
 }
 
-/**
- * 获取格式化的环境信息字符串
- */
-export async function getFormattedEnvironmentInfo(): Promise<string> {
-    const envInfo = await getEnvironmentInfo();
-    return formatEnvironmentInfo(envInfo);
-}
+

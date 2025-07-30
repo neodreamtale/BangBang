@@ -3,6 +3,24 @@
  * 用于在com.bidlink.cn应用的WebView中操作本地文件
  */
 
+// 扩展 Window 接口
+declare global {
+    interface Window {
+        // Bidlink 专用接口
+        bidlinkSupport?: {
+            getDeviceInfo?: () => Record<string, unknown>;
+            loadCrashLogs?: () => string;
+        };
+        // Android WebView 接口
+        android?: {
+            getJid?: () => string;
+            getToken?: (userId: string) => string;
+        };
+        // 调试相关
+        MockAndroid?: Record<string, unknown>;
+    }
+}
+
 export interface BidlinkFileInfo {
     name: string;
     path: string;
@@ -30,9 +48,8 @@ export function isBidlinkApp(): boolean {
         }
     }
 
-    return typeof (window as any).BidlinkInterface !== 'undefined' ||
-        typeof (window as any).Android !== 'undefined' ||
-        (window as any).isBidlinkApp === true;
+    return typeof window.bidlinkSupport !== 'undefined' ||
+        typeof window.android !== 'undefined';
 }
 
 /**
@@ -67,11 +84,9 @@ export async function getBidlinkExceptionLogs(): Promise<BidlinkFileInfo[]> {
 async function getCurrentUserId(): Promise<string | null> {
     return new Promise((resolve) => {
         try {
-            if (typeof (window as any).BidlinkInterface?.getCurrentUserId === 'function') {
-                const userId = (window as any).BidlinkInterface.getCurrentUserId();
-                resolve(userId || null);
-            } else if (typeof (window as any).Android?.getCurrentUserId === 'function') {
-                const userId = (window as any).Android.getCurrentUserId();
+            // 使用 android.getJid() 获取用户ID
+            if (typeof window.android?.getJid === 'function') {
+                const userId = window.android.getJid();
                 resolve(userId || null);
             } else {
                 resolve(null);
@@ -86,7 +101,8 @@ async function getCurrentUserId(): Promise<string | null> {
 /**
  * 获取用户日志文件夹信息
  */
-async function getUserLogFolderInfo(userId: string): Promise<{
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getUserLogFolderInfo(_userId: string): Promise<{
     userId: string;
     folderPath: string;
     files: BidlinkFileInfo[];
@@ -94,21 +110,8 @@ async function getUserLogFolderInfo(userId: string): Promise<{
 } | null> {
     return new Promise((resolve) => {
         try {
-            if (typeof (window as any).BidlinkInterface?.getUserLogInfo === 'function') {
-                const result = (window as any).BidlinkInterface.getUserLogInfo(userId);
-                if (result) {
-                    const logInfo = JSON.parse(result);
-                    resolve(logInfo);
-                    return;
-                }
-            } else if (typeof (window as any).Android?.getUserLogInfo === 'function') {
-                const result = (window as any).Android.getUserLogInfo(userId);
-                if (result) {
-                    const logInfo = JSON.parse(result);
-                    resolve(logInfo);
-                    return;
-                }
-            }
+            // Android interface methods have been removed
+            // This function now returns null
             resolve(null);
         } catch (error) {
             console.error('Failed to get user log info:', error);
@@ -117,65 +120,19 @@ async function getUserLogFolderInfo(userId: string): Promise<{
     });
 }
 
+
+
 /**
- * 检查文件是否存在并获取文件信息
- */
-async function checkFileExists(filePath: string): Promise<{ size: number, lastModified: number } | null> {
-    return new Promise((resolve) => {
-        try {
-            if (typeof (window as any).BidlinkInterface?.getFileInfo === 'function') {
-                const result = (window as any).BidlinkInterface.getFileInfo(filePath);
-                if (result) {
-                    const info = JSON.parse(result);
-                    if (info.exists) {
-                        resolve({
-                            size: info.size || 0,
-                            lastModified: info.lastModified || Date.now()
-                        });
-                        return;
-                    }
-                }
-            } else if (typeof (window as any).Android?.getFileInfo === 'function') {
-                const result = (window as any).Android.getFileInfo(filePath);
-                if (result) {
-                    const info = JSON.parse(result);
-                    if (info.exists) {
-                        resolve({
-                            size: info.size || 0,
-                            lastModified: info.lastModified || Date.now()
-                        });
-                        return;
-                    }
-                }
-            }
-            resolve(null);
-        } catch (error) {
-            resolve(null);
-        }
-    });
-}/**
  * 读取Bidlink应用的特定缓存文件
  */
-export async function readBidlinkCacheFile(filePath: string): Promise<BidlinkCacheFile> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function readBidlinkCacheFile(_filePath: string): Promise<BidlinkCacheFile> {
     if (!isBidlinkApp()) {
         throw new Error('Not running in Bidlink App');
     }
-
     return new Promise((resolve, reject) => {
         try {
-            // 尝试调用原生接口
-            if (typeof (window as any).BidlinkInterface?.readCacheFile === 'function') {
-                const result = (window as any).BidlinkInterface.readCacheFile(filePath);
-                resolve(JSON.parse(result));
-            }
-            // 备用接口  
-            else if (typeof (window as any).Android?.readCacheFile === 'function') {
-                const result = (window as any).Android.readCacheFile(filePath);
-                resolve(JSON.parse(result));
-            }
-            else {
-                reject(new Error('Bidlink file read interface not available'));
-            }
+            reject(new Error('Bidlink file read interface not available'));
         } catch (error) {
             reject(error);
         }
@@ -185,7 +142,10 @@ export async function readBidlinkCacheFile(filePath: string): Promise<BidlinkCac
 /**
  * 上传缓存文件到服务器
  */
-export async function uploadCacheFileToServer(file: BidlinkCacheFile, endpoint: string): Promise<any> {
+export async function uploadCacheFileToServer(file: BidlinkCacheFile, endpoint: string): Promise<{
+    success: boolean;
+    message?: string;
+}> {
     const formData = new FormData();
 
     // 将base64内容转换为Blob
@@ -231,14 +191,15 @@ export function getCommonCacheFileTypes(): string[] {
  */
 export function isBidlinkWebView(): boolean {
     return isBidlinkApp() &&
-        (typeof (window as any).BidlinkInterface !== 'undefined' ||
-            typeof (window as any).Android !== 'undefined');
+        (typeof window.bidlinkSupport !== 'undefined' ||
+            typeof window.android !== 'undefined');
 }
 
 /**
  * 获取当前用户ID
  */
-export async function getUserLogInfo(userId: string): Promise<{
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getUserLogInfo(_userId: string): Promise<{
     userId: string;
     logCount: number;
     totalSize: number;
@@ -246,21 +207,8 @@ export async function getUserLogInfo(userId: string): Promise<{
 } | null> {
     return new Promise((resolve) => {
         try {
-            if (typeof (window as any).BidlinkInterface?.getUserLogInfo === 'function') {
-                const result = (window as any).BidlinkInterface.getUserLogInfo(userId);
-                if (result) {
-                    const logInfo = JSON.parse(result);
-                    resolve(logInfo);
-                    return;
-                }
-            } else if (typeof (window as any).Android?.getUserLogInfo === 'function') {
-                const result = (window as any).Android.getUserLogInfo(userId);
-                if (result) {
-                    const logInfo = JSON.parse(result);
-                    resolve(logInfo);
-                    return;
-                }
-            }
+            // Android interface methods have been removed
+            // This function now returns null
             resolve(null);
         } catch (error) {
             console.error('Failed to get user log info:', error);
@@ -272,18 +220,13 @@ export async function getUserLogInfo(userId: string): Promise<{
 /**
  * 创建用户日志的ZIP文件
  */
-export async function createUserLogZip(userId: string): Promise<string | null> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function createUserLogZip(_userId: string): Promise<string | null> {
     return new Promise((resolve) => {
         try {
-            if (typeof (window as any).BidlinkInterface?.createUserLogZip === 'function') {
-                const zipPath = (window as any).BidlinkInterface.createUserLogZip(userId);
-                resolve(zipPath || null);
-            } else if (typeof (window as any).Android?.createUserLogZip === 'function') {
-                const zipPath = (window as any).Android.createUserLogZip(userId);
-                resolve(zipPath || null);
-            } else {
-                resolve(null);
-            }
+            // Android interface methods have been removed
+            // This function now returns null
+            resolve(null);
         } catch (error) {
             console.error('Failed to create user log zip:', error);
             resolve(null);
@@ -294,18 +237,13 @@ export async function createUserLogZip(userId: string): Promise<string | null> {
 /**
  * 清理用户的所有日志文件
  */
-export async function cleanupUserLogs(userId: string): Promise<boolean> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function cleanupUserLogs(_userId: string): Promise<boolean> {
     return new Promise((resolve) => {
         try {
-            if (typeof (window as any).BidlinkInterface?.cleanupUserLogs === 'function') {
-                const result = (window as any).BidlinkInterface.cleanupUserLogs(userId);
-                resolve(!!result);
-            } else if (typeof (window as any).Android?.cleanupUserLogs === 'function') {
-                const result = (window as any).Android.cleanupUserLogs(userId);
-                resolve(!!result);
-            } else {
-                resolve(false);
-            }
+            // Android interface methods have been removed
+            // This function now returns false
+            resolve(false);
         } catch (error) {
             console.error('Failed to cleanup user logs:', error);
             resolve(false);
@@ -411,27 +349,28 @@ export async function uploadAllExceptionLogs(): Promise<{
 }/**
  * 获取应用信息（如果可用）
  */
-export async function getBidlinkAppInfo(): Promise<any> {
+export async function getBidlinkAppInfo(): Promise<{
+    packageName?: string;
+    versionName?: string;
+    versionCode?: number;
+    detected: boolean;
+    method?: string;
+    debugMode?: boolean;
+} | null> {
     if (!isBidlinkApp()) {
         return null;
     }
 
     return new Promise((resolve) => {
         try {
-            if (typeof (window as any).BidlinkInterface?.getAppInfo === 'function') {
-                const result = (window as any).BidlinkInterface.getAppInfo();
-                resolve(JSON.parse(result));
-            } else if (typeof (window as any).Android?.getAppInfo === 'function') {
-                const result = (window as any).Android.getAppInfo();
-                resolve(JSON.parse(result));
-            } else {
-                resolve({
-                    packageName: 'com.bidlink.cn',
-                    detected: true,
-                    method: 'javascript_detection'
-                });
-            }
-        } catch (error) {
+            // Android interface methods have been removed
+            // Return basic information
+            resolve({
+                packageName: 'com.bidlink.cn',
+                detected: true,
+                method: 'javascript_detection'
+            });
+        } catch {
             resolve(null);
         }
     });
@@ -459,9 +398,9 @@ export function disableBidlinkDebugMode(): void {
     localStorage.removeItem('bidlink-debug-mode');
     console.log('🔧 Bidlink 调试模式已禁用');
 
-    if ((window as any).MockAndroid) {
-        delete (window as any).MockAndroid;
-        delete (window as any).Android;
+    if (window.MockAndroid) {
+        delete window.MockAndroid;
+        delete window.android;
     }
 }
 
@@ -479,7 +418,7 @@ export function getBidlinkDebugStatus(): {
     return {
         isDebugMode,
         isBidlinkDetected: isBidlinkApp(),
-        mockInterfaceAvailable: typeof (window as any).MockAndroid !== 'undefined'
+        mockInterfaceAvailable: typeof window.MockAndroid !== 'undefined'
     };
 }
 
@@ -490,56 +429,12 @@ function setupMockAndroidInterface(): void {
     if (process.env.NODE_ENV !== 'development') return;
 
     const mockAndroid = {
-        getCurrentUserId: () => 'debug_user_123',
-
-        getUserLogInfo: (userId: string) => {
-            return JSON.stringify({
-                userId: userId,
-                logCount: 3,
-                totalSize: 1024 * 50, // 50KB
-                folderPath: `/data/data/com.bidlink.cn/logs/${userId}`
-            });
-        },
-
-        createUserLogZip: (userId: string) => {
-            return `/data/data/com.bidlink.cn/cache/logs_${userId}_${Date.now()}.zip`;
-        },
-
-        readCacheFile: (filePath: string) => {
-            // 模拟读取文件内容
-            const mockContent = `Mock log content for ${filePath}\nTimestamp: ${new Date().toISOString()}\nUser: debug_user_123\nSample log data for testing...`;
-            const base64Content = btoa(mockContent);
-
-            return JSON.stringify({
-                content: base64Content,
-                encoding: 'base64',
-                metadata: {
-                    name: filePath.split('/').pop() || 'mock.zip',
-                    path: filePath,
-                    size: base64Content.length,
-                    type: 'application/zip',
-                    lastModified: Date.now()
-                }
-            });
-        },
-
-        cleanupUserLogs: (userId: string) => {
-            console.log(`🗑️ Mock: 清理用户 ${userId} 的日志文件`);
-            return true;
-        },
-
-        getAppInfo: () => {
-            return JSON.stringify({
-                packageName: 'com.bidlink.cn',
-                versionName: '1.0.0',
-                versionCode: 1,
-                debugMode: true
-            });
-        }
+        getJid: () => 'debug_user_123',
+        getToken: (userId: string) => `mock_token_for_${userId}`
     };
 
-    (window as any).MockAndroid = mockAndroid;
-    (window as any).Android = mockAndroid;
+    window.MockAndroid = mockAndroid;
+    window.android = mockAndroid;
 
     console.log('🔧 模拟 Android 接口已设置', mockAndroid);
 }
@@ -550,25 +445,38 @@ function setupMockAndroidInterface(): void {
 export function initBidlinkDebugCommands(): void {
     if (process.env.NODE_ENV !== 'development') return;
 
+    // 扩展 window 对象的类型
+    interface GlobalWindow extends Window {
+        enableDebugMode?: typeof enableDebugMode;
+        disableBidlinkDebugMode?: typeof disableBidlinkDebugMode;
+        getBidlinkDebugStatus?: typeof getBidlinkDebugStatus;
+        uploadAllExceptionLogs?: typeof uploadAllExceptionLogs;
+        showDebugPanel?: () => void;
+        hideDebugPanel?: () => void;
+        bidlinkHelp?: () => void;
+    }
+
+    const globalWindow = window as unknown as GlobalWindow;
+
     // 将调试函数挂载到全局 window 对象
-    (window as any).enableDebugMode = enableDebugMode;
-    (window as any).disableBidlinkDebugMode = disableBidlinkDebugMode;
-    (window as any).getBidlinkDebugStatus = getBidlinkDebugStatus;
-    (window as any).uploadAllExceptionLogs = uploadAllExceptionLogs;
+    globalWindow.enableDebugMode = enableDebugMode;
+    globalWindow.disableBidlinkDebugMode = disableBidlinkDebugMode;
+    globalWindow.getBidlinkDebugStatus = getBidlinkDebugStatus;
+    globalWindow.uploadAllExceptionLogs = uploadAllExceptionLogs;
 
     // 添加调试面板控制命令
-    (window as any).showDebugPanel = () => {
+    globalWindow.showDebugPanel = () => {
         window.dispatchEvent(new CustomEvent('showDebugPanel'));
         console.log('🔧 显示 Bidlink 调试面板');
     };
 
-    (window as any).hideDebugPanel = () => {
+    globalWindow.hideDebugPanel = () => {
         window.dispatchEvent(new CustomEvent('hideDebugPanel'));
         console.log('🔧 隐藏 Bidlink 调试面板');
     };
 
     // 显示可用命令
-    (window as any).bidlinkHelp = () => {
+    globalWindow.bidlinkHelp = () => {
         console.log(`
 🔧 Bidlink 调试命令:
 

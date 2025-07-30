@@ -7,26 +7,12 @@ export const appConfig = {
     url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     defaultLocale: 'zh-CN',
   },
-  
+
   // API 配置
   api: {
     baseUrl: process.env.NEXT_PUBLIC_API_URL || '/api',
     timeout: 10000,
   },
-  
-  // 功能开关
-  features: {
-    enableAnalytics: process.env.NODE_ENV === 'production',
-    enableCrashReporting: true,
-    maxFileSize: 10 * 1024 * 1024, // 10MB
-  },
-  
-  // 反馈系统配置
-  feedback: {
-    categories: ['bug', 'feature', 'improvement', 'other'],
-    priorities: ['low', 'medium', 'high', 'critical'],
-    maxAttachments: 5,
-  }
 } as const;
 
 // 导出类型
