@@ -9,17 +9,11 @@
     },
     // 🌐 端口转发
     "forwardPorts": [
-        3000,
-        8080
+        3001
     ],
     "portsAttributes": {
-        "3000": {
+        "3001": {
             "label": "Next.js App",
-            "onAutoForward": "notify",
-            "visibility": "public"
-        },
-        "8080": {
-            "label": "Next.js App (Alt)",
             "onAutoForward": "notify",
             "visibility": "public"
         }

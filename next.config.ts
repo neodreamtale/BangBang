@@ -1,38 +1,69 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // 临时注释掉实验性功能，等需要时再启用
-  // experimental: {
-  //   ppr: 'incremental'
-  // },
-
-  // 开发环境允许所有主机访问
-  ...(process.env.NODE_ENV === 'development' && {
-    async rewrites() {
-      return []
-    },
-    async headers() {
-      return [
-        {
-          source: '/(.*)',
-          headers: [
-            {
-              key: 'Access-Control-Allow-Origin',
-              value: '*',
-            },
-          ],
-        },
-      ]
-    },
-  }),
-
-  allowedDevOrigins: [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://172.30.16.95:3000',
-    'http://172.17.0.2:3000',
-    'http://0.0.0.0:3000',
-  ],
+  // WebView 专用配置
+  async headers() {
+    return [
+      // 为所有静态资源添加 CORS 头
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // 为所有 Next.js 内部资源添加 CORS
+      {
+        source: '/_next/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+        ],
+      },
+      // 为页面添加 WebView 兼容头
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+    ]
+  },
 
   // Docker 部署配置
   output: 'standalone',

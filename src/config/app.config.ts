@@ -4,7 +4,7 @@ export const appConfig = {
   site: {
     name: '意见反馈系统',
     description: '用户意见反馈系统 - 帮助我们改进产品体验',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001',
     defaultLocale: 'zh-CN',
   },
 

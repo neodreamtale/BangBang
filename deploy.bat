@@ -34,10 +34,10 @@ REM 运行新容器
 echo ▶️ 启动新容器...
 if "%ENVIRONMENT%"=="development" (
     REM 开发环境
-    docker run -d --name %CONTAINER_NAME% -p 3000:3000 -e NODE_ENV=development %IMAGE_NAME%:latest
+    docker run -d --name %CONTAINER_NAME% -p 3001:3001 -e NODE_ENV=development %IMAGE_NAME%:latest
 ) else (
     REM 生产环境
-    docker run -d --name %CONTAINER_NAME% -p 3000:3000 -e NODE_ENV=production -e NEXT_TELEMETRY_DISABLED=1 --restart unless-stopped %IMAGE_NAME%:latest
+    docker run -d --name %CONTAINER_NAME% -p 3001:3001 -e NODE_ENV=production -e NEXT_TELEMETRY_DISABLED=1 --restart unless-stopped %IMAGE_NAME%:latest
 )
 
 if %ERRORLEVEL% neq 0 (
@@ -53,7 +53,7 @@ REM 检查应用状态
 docker ps | findstr %CONTAINER_NAME% >nul
 if %ERRORLEVEL% equ 0 (
     echo ✅ 部署成功！
-    echo 🌐 应用访问地址: http://localhost:3000
+    echo 🌐 应用访问地址: http://localhost:3001
     echo 📊 容器状态:
     docker ps | findstr %CONTAINER_NAME%
     echo.

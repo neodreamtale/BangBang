@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack --port 3001 --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -11,7 +11,7 @@
     "clean-files": "npx tsx scripts/clean-unused-files.ts",
     "manage-files": "npx tsx scripts/manage-files.ts",
     "docker:build": "docker build -t punch-feedback-app .",
-    "docker:run": "docker run -p 3000:3000 punch-feedback-app",
+    "docker:run": "docker run -p 3001:3001 punch-feedback-app",
     "docker:dev": "docker-compose up --build",
     "docker:prod": "docker-compose up -d --build",
     "docker:logs": "docker logs punch-app",

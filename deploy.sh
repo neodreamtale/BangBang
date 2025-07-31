@@ -31,7 +31,7 @@ if [ "$ENVIRONMENT" = "development" ]; then
     # 开发环境：挂载代码目录，支持热重载
     docker run -d \
         --name $CONTAINER_NAME \
-        -p 3000:3000 \
+        -p 3001:3001 \
         -e NODE_ENV=development \
         -v $(pwd):/app \
         -v /app/node_modules \
@@ -40,7 +40,7 @@ else
     # 生产环境
     docker run -d \
         --name $CONTAINER_NAME \
-        -p 3000:3000 \
+        -p 3001:3001 \
         -e NODE_ENV=production \
         -e NEXT_TELEMETRY_DISABLED=1 \
         --restart unless-stopped \
@@ -54,7 +54,7 @@ sleep 10
 # 检查应用状态
 if docker ps | grep -q $CONTAINER_NAME; then
     echo "✅ 部署成功！"
-    echo "🌐 应用访问地址: http://localhost:3000"
+    echo "🌐 应用访问地址: http://localhost:3001"
     echo "📊 容器状态:"
     docker ps | grep $CONTAINER_NAME
     echo ""

@@ -6,15 +6,11 @@ import BidlinkDebugPanel from "@/components/BidlinkDebugPanel";
 import { useState, useEffect } from "react";
 import {
     isBidlinkApp,
-    getEnvironmentInfo,
-    type ExceptLogFile
+    getEnvironmentInfo
 } from "@/utils/bidlinkFileInterface";
 
 export default function BugFeedback() {
     const [isBidlink, setIsBidlink] = useState<boolean>(false);
-    const [exceptionLogs, setExceptionLogs] = useState<ExceptLogFile[]>([]);
-    const [uploadStatus, setUploadStatus] = useState<string>('');
-    const [autoUploadEnabled, setAutoUploadEnabled] = useState<boolean>(true);
 
     // 表单状态
     const [formData, setFormData] = useState({
@@ -32,6 +28,7 @@ export default function BugFeedback() {
             const inBidlinkApp = isBidlinkApp();
             setIsBidlink(inBidlinkApp);
             if (inBidlinkApp) {
+                debugger
                 loadExceptionLogZip();
             }
         });
@@ -44,21 +41,6 @@ export default function BugFeedback() {
             ...prev,
             [id]: value
         }));
-    };
-
-    // 将文件转换为 base64
-    const fileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                const result = reader.result as string;
-                // 移除 data:application/zip;base64, 前缀
-                const base64 = result.split(',')[1];
-                resolve(base64);
-            };
-            reader.onerror = (error) => reject(error);
-        });
     };
 
     // 提交表单
@@ -74,21 +56,7 @@ export default function BugFeedback() {
         setSubmitResult('');
 
         try {
-            const submitData = {
-                type: 'bug' as const,
-                description: formData.description,
-                steps: formData.steps,
-                contact: formData.contact,
-                timestamp: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                url: window.location.href,
-                attachedZipFile: null as string | null,
-                exceptionLogsUploaded: null as number | null
-            };
-
-
             setSubmitResult('Bug反馈提交成功！我们会尽快处理您的问题。');
-
             // 清空表单
             setFormData({
                 description: '',
@@ -96,7 +64,6 @@ export default function BugFeedback() {
                 contact: ''
             });
             setSelectedFile(null);
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : '未知错误';
             setSubmitResult(`提交失败: ${errorMessage}`);
@@ -111,28 +78,28 @@ export default function BugFeedback() {
 
 
     return (
-        <div className="font-sans min-h-screen p-8 pb-20 sm:p-20">
-            <div className="max-w-2xl mx-auto">
+        <div className="form-container wv-mb-2">
+            <div className="form-wrapper">
                 {/* 返回按钮 */}
-                <Link href="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary mb-8 transition-colors">
+                <Link href="/" className="nav-link">
                     <ArrowLeft size={20} />
                     返回首页
                 </Link>
 
                 {/* 页面标题 */}
-                <div className="flex items-center gap-4 mb-8">
+                <div className="form-header">
                     <Bug size={48} className="text-red-500" />
-                    <h1 className="text-4xl font-bold">Bug反馈</h1>
+                    <h1 className="form-title">Bug反馈</h1>
                 </div>
 
-                <p className="text-lg text-secondary mb-8">
+                <p className="form-description">
                     请详细描述您遇到的问题，我们会尽快修复
                 </p>
 
                 {/* 反馈表单 */}
-                <form className="space-y-6" onSubmit={handleSubmit}>
-                    <div>
-                        <label htmlFor="description" className="block text-sm font-medium mb-2">
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label htmlFor="description" className="form-label">
                             问题详情 *
                         </label>
                         <textarea
@@ -140,14 +107,14 @@ export default function BugFeedback() {
                             rows={6}
                             value={formData.description}
                             onChange={handleInputChange}
-                            className="w-full p-3 border border-default rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="form-textarea"
                             placeholder="请详细描述问题的发生过程、错误信息等"
                             required
                         />
                     </div>
 
-                    <div>
-                        <label htmlFor="steps" className="block text-sm font-medium mb-2">
+                    <div className="form-group">
+                        <label htmlFor="steps" className="form-label">
                             重现步骤
                         </label>
                         <textarea
@@ -155,25 +122,25 @@ export default function BugFeedback() {
                             rows={4}
                             value={formData.steps}
                             onChange={handleInputChange}
-                            className="w-full p-3 border border-default rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="form-textarea"
                             placeholder="1. 打开某些页面&#10;2. 点击某些按钮&#10;3. 出现何种错误"
                         />
                     </div>
 
                     {/* Bidlink应用异常日志自动上传 */}
                     {isBidlink && (
-                        <div className="border border-blue-200 rounded-lg p-4 ">
-                            <div className="flex items-center gap-2">
-                                <FileText size={20} className="text-blue-500" />
-                                <label className="block text-sm font-medium">
+                        <div className="info-box form-group">
+                            <div className="info-box-content">
+                                <FileText size={20} />
+                                <span className="form-label" style={{ marginBottom: 0 }}>
                                     异常日志会自动上传
-                                </label>
+                                </span>
                             </div>
                         </div>
                     )}
 
-                    <div>
-                        <label htmlFor="contact" className="block text-sm font-medium mb-2">
+                    <div className="form-group">
+                        <label htmlFor="contact" className="form-label">
                             联系方式
                         </label>
                         <input
@@ -181,32 +148,32 @@ export default function BugFeedback() {
                             id="contact"
                             value={formData.contact}
                             onChange={handleInputChange}
-                            className="w-full p-3 border border-default rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="form-input"
                             placeholder="您的邮箱地址（可选）"
                         />
                     </div>
 
                     {/* 提交结果显示 */}
                     {submitResult && (
-                        <div className={`p-3 rounded-lg text-sm ${submitResult.includes('成功')
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                        <div className={`form-alert ${submitResult.includes('成功')
+                            ? 'form-alert-success'
+                            : 'form-alert-error'
                             }`}>
                             {submitResult}
                         </div>
                     )}
 
-                    <div className="flex gap-4">
+                    <div className="form-button-group">
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex-1 bg-red-500 text-white py-3 px-6 rounded-lg hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+                            className="form-button form-button-primary"
                         >
                             {isSubmitting ? '提交中...' : '提交Bug反馈'}
                         </button>
                         <Link
                             href="/"
-                            className="flex-1 bg-secondary text-text-secondary py-3 px-6 rounded-lg hover:bg-secondary/80 transition-colors font-medium text-center"
+                            className="form-button form-button-secondary"
                         >
                             取消
                         </Link>

@@ -1,0 +1,187 @@
+/* ===============================
+   WebView 安全样式系统
+   =============================== */
+
+/* 这个文件包含了所有在 WebView 中100%可靠的样式类 */
+
+/* ========== 布局类 ========== */
+.wv-container { max-width: 42rem; margin: 0 auto; padding: 2rem; }
+.wv-flex { display: flex; }
+.wv-flex-col { flex-direction: column; }
+.wv-items-center { align-items: center; }
+.wv-justify-center { justify-content: center; }
+.wv-justify-between { justify-content: space-between; }
+.wv-gap-1 { gap: 0.25rem; }
+.wv-gap-2 { gap: 0.5rem; }
+.wv-gap-4 { gap: 1rem; }
+
+/* ========== 间距类 ========== */
+.wv-p-2 { padding: 0.5rem; }
+.wv-p-3 { padding: 0.75rem; }
+.wv-p-4 { padding: 1rem; }
+.wv-p-6 { padding: 1.5rem; }
+.wv-p-8 { padding: 2rem; }
+
+.wv-px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+.wv-px-4 { padding-left: 1rem; padding-right: 1rem; }
+.wv-px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+
+.wv-py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+.wv-py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+
+.wv-mb-2 { margin-bottom: 0.5rem; }
+.wv-mb-4 { margin-bottom: 1rem; }
+.wv-mb-6 { margin-bottom: 1.5rem; }
+.wv-mb-8 { margin-bottom: 2rem; }
+
+.wv-mt-4 { margin-top: 1rem; }
+.wv-mt-6 { margin-top: 1.5rem; }
+
+/* ========== 尺寸类 ========== */
+.wv-w-full { width: 100%; }
+.wv-h-full { height: 100%; }
+.wv-min-h-screen { min-height: 100vh; }
+
+/* ========== 颜色类 ========== */
+.wv-bg-white { background-color: #ffffff; }
+.wv-bg-gray-50 { background-color: #f9fafb; }
+.wv-bg-gray-100 { background-color: #f3f4f6; }
+.wv-bg-red-500 { background-color: #ef4444; }
+.wv-bg-blue-500 { background-color: #3b82f6; }
+.wv-bg-green-100 { background-color: #dcfce7; }
+.wv-bg-red-100 { background-color: #fef2f2; }
+
+.wv-text-white { color: #ffffff; }
+.wv-text-black { color: #000000; }
+.wv-text-gray-600 { color: #4b5563; }
+.wv-text-gray-800 { color: #1f2937; }
+.wv-text-red-500 { color: #ef4444; }
+.wv-text-blue-500 { color: #3b82f6; }
+.wv-text-green-800 { color: #166534; }
+.wv-text-red-800 { color: #991b1b; }
+
+/* ========== 边框类 ========== */
+.wv-border { border: 1px solid #e5e7eb; }
+.wv-border-2 { border: 2px solid #e5e7eb; }
+.wv-border-blue-200 { border-color: #dbeafe; }
+.wv-border-gray-300 { border-color: #d1d5db; }
+
+.wv-rounded { border-radius: 0.25rem; }
+.wv-rounded-md { border-radius: 0.375rem; }
+.wv-rounded-lg { border-radius: 0.5rem; }
+
+/* ========== 文字类 ========== */
+.wv-text-xs { font-size: 0.75rem; line-height: 1rem; }
+.wv-text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+.wv-text-base { font-size: 1rem; line-height: 1.5rem; }
+.wv-text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+.wv-text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+.wv-text-2xl { font-size: 1.5rem; line-height: 2rem; }
+.wv-text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+.wv-text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+
+.wv-font-medium { font-weight: 500; }
+.wv-font-semibold { font-weight: 600; }
+.wv-font-bold { font-weight: 700; }
+
+.wv-text-center { text-align: center; }
+
+/* ========== 显示类 ========== */
+.wv-block { display: block; }
+.wv-inline-block { display: inline-block; }
+.wv-inline-flex { display: inline-flex; }
+.wv-hidden { display: none; }
+
+/* ========== 表单控件 ========== */
+.wv-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.wv-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.wv-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.wv-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.wv-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wv-button-primary {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.wv-button-primary:hover:not(:disabled) {
+  background-color: #dc2626;
+}
+
+.wv-button-primary:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.wv-button-secondary {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.wv-button-secondary:hover {
+  background-color: #e5e7eb;
+}
+
+/* ========== 其他实用类 ========== */
+.wv-transition { transition: all 0.15s ease; }
+.wv-cursor-pointer { cursor: pointer; }
+.wv-cursor-not-allowed { cursor: not-allowed; }
+
+/* ========== 响应式隐藏类 ========== */
+@media (max-width: 640px) {
+  .wv-sm-hidden { display: none; }
+}
+
+@media (min-width: 641px) {
+  .wv-sm-block { display: block; }
+}
+
+/* ========== 主题适配 ========== */
+.wv-bg-primary { background-color: var(--color-bg-primary); }
+.wv-bg-secondary { background-color: var(--color-bg-secondary); }
+.wv-bg-card { background-color: var(--color-card-bg); }
+.wv-text-primary { color: var(--color-text-primary); }
+.wv-text-secondary { color: var(--color-text-secondary); }
+.wv-border-default { border-color: var(--color-border); }
