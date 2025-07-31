@@ -67,31 +67,6 @@ export function isBidlinkApp(): boolean {
         typeof window.android !== 'undefined';
 }
 
-/**
- * 自动获取Bidlink应用的异常日志文件（按用户ID组织）
- */
-export async function getBidlinkExceptionLogs(): Promise<ExceptLogFile[]> {
-    if (!isBidlinkApp()) {
-        return [];
-    }
-
-    try {
-        // 首先获取当前用户ID
-        const userId = await getCurrentUserId();
-        if (!userId) {
-            console.warn('无法获取用户ID，跳过日志检测');
-            return [];
-        }
-
-        // 获取用户日志文件夹信息
-        const userLogInfo = await getUserLogFolderInfo(userId);
-        return userLogInfo?.files || [];
-
-    } catch (error) {
-        console.error('Failed to get exception logs:', error);
-        return [];
-    }
-}
 
 /**
  * 获取当前用户ID

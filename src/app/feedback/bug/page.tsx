@@ -6,7 +6,6 @@ import BidlinkDebugPanel from "@/components/BidlinkDebugPanel";
 import { useState, useEffect } from "react";
 import {
     isBidlinkApp,
-    getBidlinkExceptionLogs,
     getEnvironmentInfo,
     type ExceptLogFile
 } from "@/utils/bidlinkFileInterface";
@@ -33,7 +32,7 @@ export default function BugFeedback() {
             const inBidlinkApp = isBidlinkApp();
             setIsBidlink(inBidlinkApp);
             if (inBidlinkApp) {
-                loadExceptionLogs();
+                loadExceptionLogZip();
             }
         });
     }, []);
@@ -87,39 +86,6 @@ export default function BugFeedback() {
                 exceptionLogsUploaded: null as number | null
             };
 
-            // 如果选择了ZIP文件，转换为base64并添加到提交数据中
-            if (selectedFile) {
-                const base64Content = await fileToBase64(selectedFile);
-                const metadata = {
-                    name: selectedFile.name,
-                    size: selectedFile.size,
-                    type: selectedFile.type,
-                    lastModified: selectedFile.lastModified,
-                    path: selectedFile.name
-                };
-
-                // 先上传ZIP文件
-                const uploadResponse = await fetch('/api/upload-exception-log-zip', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        content: base64Content,
-                        encoding: 'base64',
-                        metadata: JSON.stringify(metadata)
-                    })
-                });
-
-                const uploadResult = await uploadResponse.json();
-                if (uploadResult.success) {
-                    submitData.attachedZipFile = selectedFile.name;
-                }
-            }
-
-            // TODO: 这里需要实现实际的Bug反馈提交API
-            // 目前模拟提交成功
-            console.log('Bug反馈提交数据:', submitData);
 
             setSubmitResult('Bug反馈提交成功！我们会尽快处理您的问题。');
 
@@ -139,20 +105,8 @@ export default function BugFeedback() {
         }
     };
 
-    const loadExceptionLogs = async () => {
-        try {
-            const logs = await getBidlinkExceptionLogs();
-            setExceptionLogs(logs);
+    const loadExceptionLogZip = async () => {
 
-            if (logs.length > 0) {
-                setUploadStatus(`发现 ${logs.length} 个异常日志文件，可随Bug反馈一起提交`);
-            } else {
-                setUploadStatus('未发现异常日志文件');
-            }
-        } catch (error) {
-            console.error('Failed to load exception logs:', error);
-            setUploadStatus('获取异常日志失败');
-        }
     };
 
 
@@ -215,56 +169,6 @@ export default function BugFeedback() {
                                     异常日志自动上传
                                 </label>
                             </div>
-
-                            {/* 异常日志状态显示 */}
-                            <div className="bg-card rounded p-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium">异常日志状态</span>
-                                    <button
-                                        type="button"
-                                        onClick={loadExceptionLogs}
-                                        className="text-xs text-blue-500 hover:text-blue-600"
-                                    >
-                                        刷新
-                                    </button>
-                                </div>
-
-                                {exceptionLogs.length > 0 && (
-                                    <div className="text-xs text-text-secondary space-y-1">
-                                        {exceptionLogs.map((log, index) => (
-                                            <div key={index} className="flex justify-between">
-                                                <span>{log.name}</span>
-                                                <span>{(log.size / 1024).toFixed(1)} KB</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* 自动上传控制 */}
-                            <div className="flex items-center gap-3">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={autoUploadEnabled}
-                                        onChange={(e) => setAutoUploadEnabled(e.target.checked)}
-                                        className="w-4 h-4 text-blue-500"
-                                    />
-                                    <span className="text-sm">随Bug反馈一起提交异常日志</span>
-                                </label>
-                            </div>
-
-                            {/* 上传状态显示 */}
-                            {uploadStatus && (
-                                <div className={`text-sm p-2 rounded ${uploadStatus.includes('成功')
-                                    ? 'bg-green-100 text-green-700'
-                                    : uploadStatus.includes('失败')
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-blue-100 text-blue-700'
-                                    }`}>
-                                    {uploadStatus}
-                                </div>
-                            )}
                         </div>
                     )}
 
