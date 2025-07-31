@@ -210,76 +210,8 @@ export async function cleanupUserLogs(_userId: string): Promise<boolean> {
     });
 }
 
+
 /**
- * 自动上传所有异常日志文件（以ZIP格式）
- */
-export async function uploadAllExceptionLogs(): Promise<{
-    success: boolean;
-    message: string;
-    uploadedCount: number;
-    totalCount: number;
-}> {
-    try {
-        // 检查是否在 Bidlink WebView 环境
-        if (!isBidlinkWebView()) {
-            return {
-                success: false,
-                message: '当前环境不支持文件操作',
-                uploadedCount: 0,
-                totalCount: 0
-            };
-        }
-
-        // 获取当前用户ID
-        const userId = await getCurrentUserId();
-        if (!userId) {
-            return {
-                success: false,
-                message: '无法获取用户ID',
-                uploadedCount: 0,
-                totalCount: 0
-            };
-        }
-
-        // 获取用户的异常日志信息
-        const userLogInfo = await getUserLogInfo(userId);
-        if (!userLogInfo || userLogInfo.logCount === 0) {
-            return {
-                success: true,
-                message: '未发现异常日志文件',
-                uploadedCount: 0,
-                totalCount: 0
-            };
-        }
-
-        // 创建并获取ZIP文件
-        const zipFilePath = await createUserLogZip(userId);
-        if (!zipFilePath) {
-            return {
-                success: false,
-                message: '创建ZIP文件失败',
-                uploadedCount: 0,
-                totalCount: userLogInfo.logCount
-            };
-        }
-
-        // 由于相关接口已移除，暂时返回成功状态
-        return {
-            success: true,
-            message: `发现 ${userLogInfo.logCount} 个异常日志文件，但上传功能暂时不可用`,
-            uploadedCount: 0,
-            totalCount: userLogInfo.logCount
-        };
-
-    } catch (error) {
-        return {
-            success: false,
-            message: `获取异常日志失败: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            uploadedCount: 0,
-            totalCount: 0
-        };
-    }
-}/**
  * 获取应用信息（如果可用）
  */
 export async function getBidlinkAppInfo(): Promise<{
@@ -598,7 +530,6 @@ export function initBidlinkDebugCommands(): void {
         enableDebugMode?: typeof enableDebugMode;
         disableBidlinkDebugMode?: typeof disableBidlinkDebugMode;
         getBidlinkDebugStatus?: typeof getBidlinkDebugStatus;
-        uploadAllExceptionLogs?: typeof uploadAllExceptionLogs;
         showDebugPanel?: () => void;
         hideDebugPanel?: () => void;
         bidlinkHelp?: () => void;
@@ -610,7 +541,6 @@ export function initBidlinkDebugCommands(): void {
     globalWindow.enableDebugMode = enableDebugMode;
     globalWindow.disableBidlinkDebugMode = disableBidlinkDebugMode;
     globalWindow.getBidlinkDebugStatus = getBidlinkDebugStatus;
-    globalWindow.uploadAllExceptionLogs = uploadAllExceptionLogs;
 
     // 添加调试面板控制命令
     globalWindow.showDebugPanel = () => {

@@ -15,7 +15,6 @@ export default function BugFeedback() {
     const [isBidlink, setIsBidlink] = useState<boolean>(false);
     const [exceptionLogs, setExceptionLogs] = useState<ExceptLogFile[]>([]);
     const [uploadStatus, setUploadStatus] = useState<string>('');
-    const [isUploading, setIsUploading] = useState<boolean>(false);
     const [autoUploadEnabled, setAutoUploadEnabled] = useState<boolean>(true);
 
     // 表单状态
@@ -46,17 +45,6 @@ export default function BugFeedback() {
             ...prev,
             [id]: value
         }));
-    };
-
-    // 处理文件选择
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file && file.name.endsWith('.zip')) {
-            setSelectedFile(file);
-        } else if (file) {
-            alert('请选择 ZIP 文件格式');
-            e.target.value = '';
-        }
     };
 
     // 将文件转换为 base64
@@ -279,25 +267,6 @@ export default function BugFeedback() {
                             )}
                         </div>
                     )}
-
-                    {/* ZIP文件上传 */}
-                    <div>
-                        <label htmlFor="zipFile" className="block text-sm font-medium mb-2">
-                            上传ZIP文件（可选）
-                        </label>
-                        <input
-                            type="file"
-                            id="zipFile"
-                            accept=".zip"
-                            onChange={handleFileSelect}
-                            className="w-full p-3 border border-default rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:bg-blue-500 file:text-white hover:file:bg-blue-600"
-                        />
-                        {selectedFile && (
-                            <div className="mt-2 text-sm text-gray-600">
-                                已选择: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                            </div>
-                        )}
-                    </div>
 
                     <div>
                         <label htmlFor="contact" className="block text-sm font-medium mb-2">
