@@ -5,10 +5,15 @@ import {
     getBidlinkDebugStatus,
 } from '@/utils/bidlinkFileInterface';
 
+declare global {
+    interface Window {
+        showDebugPanel?: () => void;
+        hideDebugPanel?: () => void;
+    }
+}
+
 export default function BidlinkDebugPanel() {
     const [debugStatus, setDebugStatus] = useState(getBidlinkDebugStatus());
-    const [isUploading, setIsUploading] = useState(false);
-    const [uploadResult, setUploadResult] = useState<any>(null);
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
@@ -19,34 +24,24 @@ export default function BidlinkDebugPanel() {
         // 监听全局显示/隐藏事件
         const handleShowPanel = () => setIsVisible(true);
         const handleHidePanel = () => setIsVisible(false);
-        const handleTogglePanel = () => setIsVisible(prev => !prev);
 
         window.addEventListener('showDebugPanel', handleShowPanel);
         window.addEventListener('hideDebugPanel', handleHidePanel);
-        window.addEventListener('showDebugPanel', handleTogglePanel);
 
         // 将控制函数挂载到全局对象
-        (window as any).showDebugPanel = () => {
+        window.showDebugPanel = () => {
             setIsVisible(true);
             console.log('🔧 Bidlink 调试面板已显示');
         };
-        (window as any).hideDebugPanel = () => {
+        window.hideDebugPanel = () => {
             setIsVisible(false);
             console.log('🔧 Bidlink 调试面板已隐藏');
-        };
-        (window as any).showDebugPanel = () => {
-            setIsVisible(prev => {
-                const newState = !prev;
-                console.log(`🔧 Bidlink 调试面板已${newState ? '显示' : '隐藏'}`);
-                return newState;
-            });
         };
 
         return () => {
             clearInterval(interval);
             window.removeEventListener('showDebugPanel', handleShowPanel);
             window.removeEventListener('hideDebugPanel', handleHidePanel);
-            window.removeEventListener('showDebugPanel', handleTogglePanel);
         };
     }, []);
 
@@ -113,24 +108,6 @@ export default function BidlinkDebugPanel() {
                         {debugStatus.isDebugMode ? '禁用调试模式' : '启用调试模式'}
                     </button>
                 </div>
-
-                {/* 上传结果 */}
-                {uploadResult && (
-                    <div className={`p-2 rounded text-xs ${uploadResult.success ? 'bg-green-800' : 'bg-red-800'
-                        }`}>
-                        <div className="font-medium mb-1">
-                            {uploadResult.success ? '✅ 上传成功' : '❌ 上传失败'}
-                        </div>
-                        <div className="text-xs opacity-80">
-                            {uploadResult.message}
-                        </div>
-                        {uploadResult.success && (
-                            <div className="text-xs opacity-80 mt-1">
-                                上传文件: {uploadResult.uploadedCount}/{uploadResult.totalCount}
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 {/* 使用说明 */}
                 <div className="text-xs opacity-60 border-t border-gray-600 pt-2">

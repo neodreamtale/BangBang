@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-interface BidlinkFileInfo {
+interface ExceptLogFile {
     name: string;
     path: string;
     size: number;
     type: string;
     lastModified: number;
-}
-
-interface BidlinkCacheFile {
-    content: string;
-    encoding: 'base64' | 'utf8';
-    metadata: BidlinkFileInfo;
 }
 
 /**
@@ -35,13 +29,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 解析元数据
-        const metadata: BidlinkFileInfo = JSON.parse(metadataString);
-
-        const zipFile: BidlinkCacheFile = {
-            content: contentString,
-            encoding: encoding as 'base64' | 'utf8',
-            metadata
-        };
+        const metadata: ExceptLogFile = JSON.parse(metadataString);
 
         // 验证文件类型
         if (!metadata.name.endsWith('.zip')) {
@@ -55,7 +43,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 分析ZIP文件内容
-        const analysis = analyzeZipFile(zipFile);
+        const analysis = analyzeZipFile(metadata);
 
         // 生成报告
         const report = {
@@ -63,7 +51,7 @@ export async function POST(request: NextRequest) {
                 name: metadata.name,
                 size: metadata.size,
                 uploadTime: new Date().toISOString(),
-                encoding: zipFile.encoding
+                encoding: encoding
             },
             analysis,
             success: true
@@ -98,15 +86,14 @@ export async function POST(request: NextRequest) {
 /**
  * 分析ZIP文件内容
  */
-function analyzeZipFile(zipFile: BidlinkCacheFile) {
+function analyzeZipFile(metadata: ExceptLogFile) {
     try {
         // 对于ZIP文件，我们主要记录基本信息
         // 实际的ZIP解析需要在后端进行
         return {
             type: 'ZIP压缩包',
-            fileName: zipFile.metadata.name,
-            fileSize: zipFile.metadata.size,
-            encoding: zipFile.encoding,
+            fileName: metadata.name,
+            fileSize: metadata.size,
             uploadTime: new Date().toISOString(),
             description: '用户异常日志文件的ZIP压缩包，包含多个日志文件',
             notes: [

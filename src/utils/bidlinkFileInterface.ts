@@ -21,7 +21,7 @@ declare global {
     }
 }
 
-export interface BidlinkFileInfo {
+export interface ExceptLogFile {
     name: string;
     path: string;
     size: number;
@@ -29,22 +29,37 @@ export interface BidlinkFileInfo {
     lastModified: number;
 }
 
-export interface BidlinkCacheFile {
-    content: string;
-    encoding: 'base64' | 'utf8';
-    metadata: BidlinkFileInfo;
+// ====== 环境检测接口和功能 ======
+
+export interface EnvironmentInfo {
+    userAgent: string;
+    browser: string;
+    version: string;
+    os: string;
+    screen: string;
+    isWebView: boolean;
+    webViewType?: string;
+    appPackage?: string;
+    nativeInfo?: Record<string, unknown>;
 }
 
 /**
  * 检查是否在Bidlink应用中
  */
 export function isBidlinkApp(): boolean {
+    // 服务器端渲染时返回 false
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
     // 开发环境调试模式
     if (process.env.NODE_ENV === 'development') {
         // 检查是否设置了调试模式
-        const debugMode = localStorage.getItem('bidlink-debug-mode');
-        if (debugMode === 'true') {
-            return true;
+        if (typeof localStorage !== 'undefined') {
+            const debugMode = localStorage.getItem('bidlink-debug-mode');
+            if (debugMode === 'true') {
+                return true;
+            }
         }
     }
 
@@ -55,7 +70,7 @@ export function isBidlinkApp(): boolean {
 /**
  * 自动获取Bidlink应用的异常日志文件（按用户ID组织）
  */
-export async function getBidlinkExceptionLogs(): Promise<BidlinkFileInfo[]> {
+export async function getBidlinkExceptionLogs(): Promise<ExceptLogFile[]> {
     if (!isBidlinkApp()) {
         return [];
     }
@@ -105,7 +120,7 @@ async function getCurrentUserId(): Promise<string | null> {
 async function getUserLogFolderInfo(_userId: string): Promise<{
     userId: string;
     folderPath: string;
-    files: BidlinkFileInfo[];
+    files: ExceptLogFile[];
     totalSize: number;
 } | null> {
     return new Promise((resolve) => {
@@ -118,62 +133,6 @@ async function getUserLogFolderInfo(_userId: string): Promise<{
             resolve(null);
         }
     });
-}
-
-
-
-/**
- * 读取Bidlink应用的特定缓存文件
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function readBidlinkCacheFile(_filePath: string): Promise<BidlinkCacheFile> {
-    if (!isBidlinkApp()) {
-        throw new Error('Not running in Bidlink App');
-    }
-    return new Promise((resolve, reject) => {
-        try {
-            reject(new Error('Bidlink file read interface not available'));
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
-
-/**
- * 上传缓存文件到服务器
- */
-export async function uploadCacheFileToServer(file: BidlinkCacheFile, endpoint: string): Promise<{
-    success: boolean;
-    message?: string;
-}> {
-    const formData = new FormData();
-
-    // 将base64内容转换为Blob
-    let blob: Blob;
-    if (file.encoding === 'base64') {
-        const binaryString = atob(file.content);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        blob = new Blob([bytes], { type: file.metadata.type });
-    } else {
-        blob = new Blob([file.content], { type: file.metadata.type || 'text/plain' });
-    }
-
-    formData.append('file', blob, file.metadata.name);
-    formData.append('metadata', JSON.stringify(file.metadata));
-
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-    });
-
-    if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-    }
-
-    return response.json();
 }
 
 /**
@@ -304,39 +263,13 @@ export async function uploadAllExceptionLogs(): Promise<{
             };
         }
 
-        // 读取ZIP文件内容
-        const zipContent = await readBidlinkCacheFile(zipFilePath);
-
-        // 为ZIP文件添加元数据
-        const enrichedZipContent: BidlinkCacheFile = {
-            ...zipContent,
-            metadata: {
-                ...zipContent.metadata,
-                name: `user_${userId}_logs_${Date.now()}.zip`
-            }
+        // 由于相关接口已移除，暂时返回成功状态
+        return {
+            success: true,
+            message: `发现 ${userLogInfo.logCount} 个异常日志文件，但上传功能暂时不可用`,
+            uploadedCount: 0,
+            totalCount: userLogInfo.logCount
         };
-
-        // 上传ZIP文件
-        const uploadResult = await uploadCacheFileToServer(enrichedZipContent, '/api/upload-exception-log-zip');
-
-        if (uploadResult.success) {
-            // 上传成功，删除本地所有相关日志
-            await cleanupUserLogs(userId);
-
-            return {
-                success: true,
-                message: `成功上传 ${userLogInfo.logCount} 个异常日志文件（ZIP格式）`,
-                uploadedCount: userLogInfo.logCount,
-                totalCount: userLogInfo.logCount
-            };
-        } else {
-            return {
-                success: false,
-                message: `上传失败: ${uploadResult.message}`,
-                uploadedCount: 0,
-                totalCount: userLogInfo.logCount
-            };
-        }
 
     } catch (error) {
         return {
@@ -376,6 +309,220 @@ export async function getBidlinkAppInfo(): Promise<{
     });
 }
 
+// ====== 环境检测功能 ======
+
+/**
+ * 检测浏览器信息
+ */
+function detectBrowser(): { browser: string; version: string } {
+    // 服务器端渲染时返回默认值
+    if (typeof navigator === 'undefined') {
+        return { browser: 'Unknown', version: 'Unknown' };
+    }
+
+    const userAgent = navigator.userAgent;
+
+    // Chrome
+    if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+        const match = userAgent.match(/Chrome\/(\d+)/);
+        return { browser: 'Chrome', version: match ? match[1] : 'Unknown' };
+    }
+
+    // Edge
+    if (userAgent.includes('Edg')) {
+        const match = userAgent.match(/Edg\/(\d+)/);
+        return { browser: 'Edge', version: match ? match[1] : 'Unknown' };
+    }
+
+    // Firefox
+    if (userAgent.includes('Firefox')) {
+        const match = userAgent.match(/Firefox\/(\d+)/);
+        return { browser: 'Firefox', version: match ? match[1] : 'Unknown' };
+    }
+
+    // Safari
+    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+        const match = userAgent.match(/Version\/(\d+)/);
+        return { browser: 'Safari', version: match ? match[1] : 'Unknown' };
+    }
+
+    return { browser: 'Unknown', version: 'Unknown' };
+}
+
+/**
+ * 检测操作系统
+ */
+function detectOS(): string {
+    // 服务器端渲染时返回默认值
+    if (typeof navigator === 'undefined') {
+        return 'Unknown';
+    }
+
+    const userAgent = navigator.userAgent;
+    const platform = navigator.platform;
+
+    if (/Android/i.test(userAgent)) {
+        const match = userAgent.match(/Android (\d+(?:\.\d+)?)/);
+        return `Android ${match ? match[1] : 'Unknown'}`;
+    }
+
+    if (/iPhone|iPad|iPod/i.test(userAgent)) {
+        const match = userAgent.match(/OS (\d+(?:_\d+)?)/);
+        const version = match ? match[1].replace('_', '.') : 'Unknown';
+        return `iOS ${version}`;
+    }
+
+    if (/Windows/i.test(userAgent)) {
+        if (/Windows NT 10/i.test(userAgent)) return 'Windows 10/11';
+        if (/Windows NT 6\.3/i.test(userAgent)) return 'Windows 8.1';
+        if (/Windows NT 6\.2/i.test(userAgent)) return 'Windows 8';
+        if (/Windows NT 6\.1/i.test(userAgent)) return 'Windows 7';
+        return 'Windows';
+    }
+
+    if (/Mac/i.test(platform) || /Mac/i.test(userAgent)) {
+        return 'macOS';
+    }
+
+    if (/Linux/i.test(platform)) {
+        return 'Linux';
+    }
+
+    return 'Unknown';
+}
+
+/**
+ * 检测是否在WebView中
+ */
+function detectWebView(): { isWebView: boolean; webViewType?: string; appPackage?: string } {
+    // 服务器端渲染时返回默认值
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        return { isWebView: false };
+    }
+
+    const userAgent = navigator.userAgent;
+
+    // 检测 Bidlink 应用
+    if (/BidlinkApp/i.test(userAgent) || isBidlinkApp()) {
+        return {
+            isWebView: true,
+            webViewType: 'Bidlink App WebView',
+            appPackage: 'com.bidlink.cn'
+        };
+    }
+
+    // Android WebView
+    if (/wv\)/i.test(userAgent)) {
+        return { isWebView: true, webViewType: 'Android WebView' };
+    }
+
+    // iOS WebView (非Safari)
+    if (/iPhone|iPad|iPod/i.test(userAgent) && !/Safari/i.test(userAgent)) {
+        return { isWebView: true, webViewType: 'iOS WebView' };
+    }
+
+    // 微信WebView
+    if (/MicroMessenger/i.test(userAgent)) {
+        return { isWebView: true, webViewType: 'WeChat WebView' };
+    }
+
+    // QQ WebView
+    if (/QQ\//i.test(userAgent)) {
+        return { isWebView: true, webViewType: 'QQ WebView' };
+    }
+
+    // 支付宝WebView
+    if (/AlipayClient/i.test(userAgent)) {
+        return { isWebView: true, webViewType: 'Alipay WebView' };
+    }
+
+    return { isWebView: false };
+}
+
+/**
+ * 获取屏幕信息
+ */
+function getScreenInfo(): string {
+    // 服务器端渲染时返回默认值
+    if (typeof window === 'undefined') {
+        return 'Unknown';
+    }
+
+    const screen = window.screen;
+    const devicePixelRatio = window.devicePixelRatio || 1;
+
+    return `${screen.width}x${screen.height} (${devicePixelRatio}x)`;
+}
+
+/**
+ * 尝试从原生应用获取额外信息
+ */
+function getNativeAppInfo(): Promise<Record<string, unknown>> {
+    return new Promise((resolve) => {
+        let nativeInfo: Record<string, unknown> = {};
+
+        try {
+            // Bidlink 应用接口
+            if (typeof window.bidlinkSupport !== 'undefined') {
+                const bidlinkSupportInterface = window.bidlinkSupport;
+                if (typeof bidlinkSupportInterface.getDeviceInfo === 'function') {
+                    nativeInfo = {
+                        ...nativeInfo,
+                        bidlink: bidlinkSupportInterface.getDeviceInfo()
+                    };
+                }
+            }
+        } catch (error) {
+            console.log('Native interface not available or error:', error);
+        }
+        // 设置超时，避免无限等待
+        setTimeout(() => resolve(nativeInfo), 100);
+    });
+}
+
+/**
+ * 获取完整的环境信息
+ */
+export async function getEnvironmentInfo(): Promise<EnvironmentInfo> {
+    // 服务器端渲染时返回默认值
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+        return {
+            userAgent: 'Unknown',
+            browser: 'Unknown',
+            version: 'Unknown',
+            os: 'Unknown',
+            screen: 'Unknown',
+            isWebView: false
+        };
+    }
+
+    const { browser, version } = detectBrowser();
+    const os = detectOS();
+    const { isWebView, webViewType, appPackage } = detectWebView();
+    const screen = getScreenInfo();
+
+    // 尝试获取原生应用信息
+    const nativeInfo = await getNativeAppInfo();
+
+    const envInfo: EnvironmentInfo = {
+        userAgent: navigator.userAgent,
+        browser,
+        version,
+        os,
+        screen,
+        isWebView,
+        webViewType,
+        appPackage
+    };
+
+    // 如果有原生信息，合并进去
+    if (Object.keys(nativeInfo).length > 0) {
+        envInfo.nativeInfo = nativeInfo;
+    }
+
+    return envInfo;
+}
+
 // ====== 调试工具函数 ======
 
 /**
@@ -410,15 +557,14 @@ export function disableBidlinkDebugMode(): void {
 export function getBidlinkDebugStatus(): {
     isDebugMode: boolean;
     isBidlinkDetected: boolean;
-    mockInterfaceAvailable: boolean;
 } {
     const isDebugMode = process.env.NODE_ENV === 'development' &&
+        typeof localStorage !== 'undefined' &&
         localStorage.getItem('bidlink-debug-mode') === 'true';
 
     return {
         isDebugMode,
         isBidlinkDetected: isBidlinkApp(),
-        mockInterfaceAvailable: typeof window.MockAndroid !== 'undefined'
     };
 }
 
