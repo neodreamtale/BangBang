@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 import {
     isBidlinkApp,
     getBidlinkExceptionLogs,
-    uploadAllExceptionLogs,
     getEnvironmentInfo,
     type ExceptLogFile
 } from "@/utils/bidlinkFileInterface";
@@ -130,18 +129,6 @@ export default function BugFeedback() {
                 }
             }
 
-            // 如果启用了自动上传且有异常日志，先上传异常日志
-            if (autoUploadEnabled && exceptionLogs.length > 0) {
-                try {
-                    const logUploadResult = await uploadAllExceptionLogs();
-                    if (logUploadResult.success) {
-                        submitData.exceptionLogsUploaded = logUploadResult.uploadedCount;
-                    }
-                } catch (error) {
-                    console.warn('异常日志上传失败:', error);
-                }
-            }
-
             // TODO: 这里需要实现实际的Bug反馈提交API
             // 目前模拟提交成功
             console.log('Bug反馈提交数据:', submitData);
@@ -180,30 +167,7 @@ export default function BugFeedback() {
         }
     };
 
-    const handleAutoUploadLogs = async () => {
-        if (exceptionLogs.length === 0) {
-            setUploadStatus('没有异常日志需要上传');
-            return;
-        }
 
-        setIsUploading(true);
-        setUploadStatus('正在自动上传异常日志...');
-
-        try {
-            const result = await uploadAllExceptionLogs();
-            setUploadStatus(result.message);
-
-            if (result.success && result.uploadedCount > 0) {
-                // 上传成功后重新检查异常日志
-                await loadExceptionLogs();
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            setUploadStatus(`上传失败: ${errorMessage}`);
-        } finally {
-            setIsUploading(false);
-        }
-    };
     return (
         <div className="font-sans min-h-screen p-8 pb-20 sm:p-20">
             <div className="max-w-2xl mx-auto">
@@ -300,17 +264,6 @@ export default function BugFeedback() {
                                     />
                                     <span className="text-sm">随Bug反馈一起提交异常日志</span>
                                 </label>
-
-                                {exceptionLogs.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={handleAutoUploadLogs}
-                                        disabled={isUploading}
-                                        className="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                                    >
-                                        {isUploading ? '上传中...' : '立即上传'}
-                                    </button>
-                                )}
                             </div>
 
                             {/* 上传状态显示 */}
@@ -363,8 +316,8 @@ export default function BugFeedback() {
                     {/* 提交结果显示 */}
                     {submitResult && (
                         <div className={`p-3 rounded-lg text-sm ${submitResult.includes('成功')
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
                             }`}>
                             {submitResult}
                         </div>

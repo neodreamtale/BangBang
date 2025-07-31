@@ -557,6 +557,7 @@ export function disableBidlinkDebugMode(): void {
 export function getBidlinkDebugStatus(): {
     isDebugMode: boolean;
     isBidlinkDetected: boolean;
+    mockInterfaceAvailable: boolean;
 } {
     const isDebugMode = process.env.NODE_ENV === 'development' &&
         typeof localStorage !== 'undefined' &&
@@ -565,6 +566,7 @@ export function getBidlinkDebugStatus(): {
     return {
         isDebugMode,
         isBidlinkDetected: isBidlinkApp(),
+        mockInterfaceAvailable: typeof window !== 'undefined' && typeof window.MockAndroid !== 'undefined'
     };
 }
 
