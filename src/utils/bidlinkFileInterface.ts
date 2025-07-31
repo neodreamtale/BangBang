@@ -88,27 +88,6 @@ async function getCurrentUserId(): Promise<string | null> {
     });
 }
 
-/**
- * 获取用户日志文件夹信息
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getUserLogFolderInfo(_userId: string): Promise<{
-    userId: string;
-    folderPath: string;
-    files: ExceptLogFile[];
-    totalSize: number;
-} | null> {
-    return new Promise((resolve) => {
-        try {
-            // Android interface methods have been removed
-            // This function now returns null
-            resolve(null);
-        } catch (error) {
-            console.error('Failed to get user log info:', error);
-            resolve(null);
-        }
-    });
-}
 
 /**
  * 获取常见的缓存文件类型

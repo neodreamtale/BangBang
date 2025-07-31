@@ -166,7 +166,7 @@ export default function BugFeedback() {
                             <div className="flex items-center gap-2">
                                 <FileText size={20} className="text-blue-500" />
                                 <label className="block text-sm font-medium">
-                                    异常日志自动上传
+                                    异常日志会自动上传
                                 </label>
                             </div>
                         </div>

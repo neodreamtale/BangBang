@@ -38,5 +38,12 @@
     "typescriptreact": "html",
     "javascript": "html",
     "javascriptreact": "html"
+  },
+  // 端口转发设置
+  "remote.portsAttributes": {
+    "3000": {
+      "visibility": "public",
+      "label": "Next.js Development Server"
+    }
   }
 }
