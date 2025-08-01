@@ -1,36 +1,97 @@
 {
   // Tailwind CSS IntelliSense 配置
   "tailwindCSS.includeLanguages": {
-    "typescript": "html",
+    "javascriptreact": "html",
     "typescriptreact": "html",
-    "javascript": "html",
-    "javascriptreact": "html"
+    "vue": "html",
+    "javascript": "javascriptreact",
+    "typescript": "typescriptreact"
   },
   "tailwindCSS.experimental.classRegex": [
+    "className\\s*=\\s*[\"'`]([^\"'`]*)[\"'`]",
+    "class\\s*=\\s*[\"'`]([^\"'`]*)[\"'`]",
     [
-      "cva\\(([^)]*)\\)",
-      "[\"'`]([^\"'`]*).*?[\"'`]"
-    ],
-    [
-      "cx\\(([^)]*)\\)",
-      "(?:'|\"|`)([^']*)(?:'|\"|`)"
+      "(?:dark|sm|md|lg|xl|2xl|hover|focus|active|disabled|first|last|odd|even|group-hover):([a-zA-Z0-9-_]+)",
+      "$1"
     ]
   ],
-  // 启用 Tailwind 类名的自动补全
+  // Tailwind 功能配置
+  "tailwindCSS.validate": true,
+  "tailwindCSS.suggestions": true,
+  "tailwindCSS.hovers": true,
+  "tailwindCSS.colorDecorators": true,
+  "tailwindCSS.emmetCompletions": true,
+  "tailwindCSS.showPixelEquivalents": true,
+  "tailwindCSS.rootFontSize": 16,
+  // TypeScript React 文件支持
   "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
     "strings": true
   },
-  // 在字符串中启用自动补全
-  "editor.inlineSuggest.enabled": true,
-  // CSS 类名悬停预览
+  "editor.hover.enabled": true,
+  // CSS 支持
+  "css.validate": true,
   "css.hover.documentation": true,
-  // 自动保存时格式化
+  // Tailwind 文档快速访问
+  "tailwind-docs.openIn": "editor",
+  "tailwindCSS.lint.cssConflict": "warning",
+  "tailwindCSS.lint.invalidApply": "error",
+  "tailwindCSS.lint.invalidScreen": "error",
+  "tailwindCSS.lint.invalidVariant": "error",
+  "tailwindCSS.lint.invalidConfigPath": "error",
+  "tailwindCSS.lint.invalidTailwindDirective": "error",
+  // 编辑器配置
+  "editor.suggest.showStatusBar": true,
+  "editor.inlineSuggest.enabled": true,
   "editor.formatOnSave": true,
-  // Tailwind 类名排序（需要 Headwind 插件）
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  // 语言特定的格式化器
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // TypeScript 和语言支持
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  // CSS Peek 设置
+  "css_peek.enable": true,
+  "css_peek.searchFileExtensions": [
+    ".css",
+    ".scss",
+    ".sass",
+    ".less"
+  ],
+  "css_peek.peekFromLanguages": [
+    "html",
+    "javascript",
+    "typescript",
+    "jsx",
+    "tsx"
+  ],
+  // CSS Navigation 设置  
+  "cssNavigation.enableGoToDefinition": true,
+  "cssNavigation.enableFindAllReferences": true,
   "headwind.runOnSave": true,
   // 文件关联
   "files.associations": {
-    "*.css": "tailwindcss"
+    "*.css": "tailwindcss",
+    "*.tsx": "typescriptreact"
   },
   // Emmet 支持
   "emmet.includeLanguages": {

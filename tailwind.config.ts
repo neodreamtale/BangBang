@@ -13,17 +13,16 @@ export default {
     theme: {
         extend: {
             colors: {
-                // 语义化颜色 - 自动响应主题
-                primary: 'var(--color-bg-primary)',
-                secondary: 'var(--color-bg-secondary)',
-                card: 'var(--color-card-bg)',
-
-                // 文字色系  
-                'text-primary': 'var(--color-text-primary)',
-                'text-secondary': 'var(--color-text-secondary)',
-
-                // 边框色系
-                'border-default': 'var(--color-border)',
+                // 简化的颜色配置
+                background: "rgb(var(--background))",
+                foreground: "rgb(var(--foreground))",
+                card: "rgb(var(--card))",
+                'card-foreground': "rgb(var(--card-foreground))",
+                border: "rgb(var(--border))",
+                muted: "rgb(var(--muted))",
+                'muted-foreground': "rgb(var(--muted-foreground))",
+                accent: "rgb(var(--accent))",
+                'accent-foreground': "rgb(var(--accent-foreground))",
             }
         },
     },

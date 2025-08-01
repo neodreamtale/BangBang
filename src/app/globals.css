@@ -1,2 +1,101 @@
-/* CSS已清空 - 用于测试WebView滑动问题 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 基础主题变量 */
+:root {
+  --background: 255 255 255;
+  --foreground: 0 0 0;
+  --card: 255 255 255;
+  --card-foreground: 0 0 0;
+  --border: 229 231 235;
+  --muted: 249 250 251;
+  --muted-foreground: 107 114 128;
+  --accent: 59 130 246;
+  --accent-foreground: 255 255 255;
+}
+
+.dark {
+  --background: 17 24 39;
+  --foreground: 255 255 255;
+  --card: 31 41 55;
+  --card-foreground: 255 255 255;
+  --border: 75 85 99;
+  --muted: 55 65 81;
+  --muted-foreground: 156 163 175;
+  --accent: 59 130 246;
+  --accent-foreground: 255 255 255;
+}
+
+/* 全局基础样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* 主题切换按钮样式 */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid rgb(var(--border));
+  color: rgb(var(--foreground));
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background: rgb(var(--muted));
+  border-color: rgb(var(--accent));
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+/* 主题指示器样式 */
+.theme-indicator {
+  color: rgb(var(--muted-foreground));
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  margin-left: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+/* 卡片样式 */
+.card {
+  background: rgb(var(--card));
+  border: 1px solid rgb(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  border-color: rgb(var(--accent));
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 链接样式 */
+a {
+  color: rgb(var(--accent));
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  opacity: 0.8;
+}
 

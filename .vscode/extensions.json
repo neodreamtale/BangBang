@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "bradlc.vscode-tailwindcss",
+        "ecmel.vscode-html-css",
+        "pranaygp.vscode-css-peek",
+        "pucelle.vscode-css-navigation",
+        "austenc.tailwind-docs"
+    ]
+}
