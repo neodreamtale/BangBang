@@ -1,23 +1,4 @@
-/* ===============================
-   WebView 安全样式系统
-   =============================== */
-
-/* 这个文件包含了所有在 WebView 中100%可靠的样式类 */
-
-/* ========== 布局类 ========== */
-.wv-container { max-width: 42rem; margin: 0 auto; padding: 2rem; }
-.wv-flex { display: flex; }
-.wv-flex-col { flex-direction: column; }
-.wv-items-center { align-items: center; }
-.wv-justify-center { justify-content: center; }
-.wv-justify-between { justify-content: space-between; }
-.wv-gap-1 { gap: 0.25rem; }
-.wv-gap-2 { gap: 0.5rem; }
-.wv-gap-4 { gap: 1rem; }
-
-/* ========== 间距类 ========== */
-.wv-p-2 { padding: 0.5rem; }
-.wv-p-3 { padding: 0.75rem; }
+/* CSS已清空 - 用于测试WebView滑动问题 */
 .wv-p-4 { padding: 1rem; }
 .wv-p-6 { padding: 1.5rem; }
 .wv-p-8 { padding: 2rem; }

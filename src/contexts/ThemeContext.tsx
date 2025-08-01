@@ -7,12 +7,14 @@ type Theme = 'light' | 'dark'
 interface ThemeContextType {
     theme: Theme
     toggleTheme: () => void
+    mounted: boolean
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>('light')
+    const [mounted, setMounted] = useState(false)
 
     // 初始化主题
     useEffect(() => {
@@ -21,6 +23,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const initialTheme = savedTheme || 'light'
 
         setTheme(initialTheme)
+        setMounted(true)
 
         // Tailwind标准：添加或移除dark类
         if (initialTheme === 'dark') {
@@ -34,15 +37,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // 应用主题变化
     useEffect(() => {
-        // Tailwind标准：根据主题添加或移除dark类
         if (theme === 'dark') {
             document.documentElement.classList.add('dark')
         } else {
             document.documentElement.classList.remove('dark')
         }
-
         localStorage.setItem('theme', theme)
-        console.log('Theme applied:', theme, 'Has dark class:', document.documentElement.classList.contains('dark'))
     }, [theme])
 
     const toggleTheme = () => {
@@ -51,7 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setTheme(newTheme)
     }
 
-    return (<ThemeContext.Provider value={{ theme, toggleTheme }}>
+    return (<ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>
         {children}
     </ThemeContext.Provider>)
 }

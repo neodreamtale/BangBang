@@ -12,11 +12,8 @@ export function ThemeToggle() {
     }
 
     return (
-        <button
-            onClick={handleClick}
-            className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-        >
-            {theme === 'light' ? (<Sun size={20} className="text-yellow-500" />) : (<Moon size={20} className="text-blue-400" />)}
+        <button onClick={handleClick}>
+            {theme === 'light' ? (<Sun size={20} />) : (<Moon size={20} />)}
         </button>
     )
 }
