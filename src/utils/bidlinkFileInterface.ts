@@ -557,3 +557,18 @@ export function initBidlinkDebugCommands(): void {
 在任何页面的控制台中运行上述命令即可使用调试功能。
     `)
 }
+
+// ====== 文件工具函数 ======
+
+/**
+ * 格式化文件大小显示
+ * @param bytes 字节数
+ * @returns 格式化后的文件大小字符串
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}

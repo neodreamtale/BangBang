@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   // 针对挂载文件系统的开发配置
@@ -9,23 +9,37 @@ const nextConfig: NextConfig = {
         poll: process.env.WATCHPACK_POLLING === 'true' ? 1000 : 5000, // 根据环境变量调整轮询频率
         aggregateTimeout: 300,
         ignored: /node_modules/,
-      };
+      }
 
       // 针对挂载文件系统的特殊配置
       config.snapshot = {
         managedPaths: [],
         immutablePaths: [],
-      };
+      }
 
       // 确保文件系统缓存被禁用以支持热更新
-      config.cache = false;
+      config.cache = false
     }
-    return config;
+    return config
   },
 
   // WebView 专用配置
   async headers() {
     return [
+      // 为上传的文件添加下载头
+      {
+        source: '/uploads/(.*)',
+        headers: [
+          {
+            key: 'Content-Disposition',
+            value: 'attachment',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
       // 为所有静态资源添加 CORS 头
       {
         source: '/_next/static/(.*)',
@@ -92,13 +106,13 @@ const nextConfig: NextConfig = {
 
   // 优化静态资源
   images: {
-    unoptimized: true
+    unoptimized: true,
   },
 
   // Docker 构建时跳过 ESLint 检查（生产环境临时配置）
   eslint: {
-    ignoreDuringBuilds: true
-  }
-};
+    ignoreDuringBuilds: true,
+  },
+}
 
-export default nextConfig;
+export default nextConfig
