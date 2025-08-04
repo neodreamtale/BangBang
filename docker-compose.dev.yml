@@ -19,7 +19,7 @@ services:
       # 挂载上级目录的 SSH 密钥
       - ../.ssh:/root/.ssh:ro
     restart: unless-stopped
-    command: /app/start-dev.sh
+    command: sh /app/start-dev.sh
     networks:
       - dev-network
 
