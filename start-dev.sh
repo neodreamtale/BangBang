@@ -41,14 +41,29 @@ if [ -f /root/.ssh/NeoPorcoDev ]; then
   echo "🧪 测试 GitHub SSH 连接..."
   ssh -o BatchMode=yes -o ConnectTimeout=5 -T git@github.com 2>&1 | head -3
   
-  # 将环境变量添加到 .bashrc 和 .profile，这样新的终端会话会自动加载
-  echo "" >> /root/.bashrc
-  echo "# Auto-load SSH Agent environment" >> /root/.bashrc
-  echo "if [ -f /tmp/ssh-agent-env ]; then" >> /root/.bashrc
-  echo "  source /tmp/ssh-agent-env" >> /root/.bashrc
-  echo "fi" >> /root/.bashrc
+  # 将环境变量添加到 .bashrc，这样新的终端会话会自动加载
+  if ! grep -q "Auto-load SSH Agent environment" /root/.bashrc 2>/dev/null; then
+    echo "" >> /root/.bashrc
+    echo "# Auto-load SSH Agent environment" >> /root/.bashrc
+    echo "if [ -f /tmp/ssh-agent-env ]; then" >> /root/.bashrc
+    echo "  source /tmp/ssh-agent-env" >> /root/.bashrc
+    echo "fi" >> /root/.bashrc
+    echo "📝 已添加SSH环境自动加载到 .bashrc"
+  fi
   
-  echo "💡 SSH环境已配置，新终端会话会自动加载SSH认证"
+  # 为当前脚本进程也应用环境变量
+  export SSH_AUTH_SOCK="$SSH_AUTH_SOCK"
+  export SSH_AGENT_PID="$SSH_AGENT_PID"
+  
+  echo "💡 SSH环境已配置完成"
+  echo "🔍 验证SSH连接状态..."
+  
+  # 最终验证
+  if ssh -o BatchMode=yes -o ConnectTimeout=3 -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
+    echo "✅ GitHub SSH 连接验证成功！可以使用 git push"
+  else
+    echo "⚠️  GitHub SSH 连接可能有问题"
+  fi
   
 else
   echo "⚠️  SSH 密钥不存在: /root/.ssh/NeoPorcoDev"
