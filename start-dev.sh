@@ -21,6 +21,11 @@ if [ -f /root/.ssh/NeoPorcoDev ]; then
   # 启动 SSH Agent 并导出环境变量
   eval "$(ssh-agent -s)"
   
+  # 将 SSH Agent 环境变量写入文件，供其他终端会话使用
+  echo "export SSH_AUTH_SOCK=\"$SSH_AUTH_SOCK\"" > /tmp/ssh-agent-env
+  echo "export SSH_AGENT_PID=\"$SSH_AGENT_PID\"" >> /tmp/ssh-agent-env
+  chmod 600 /tmp/ssh-agent-env
+  
   # 添加密钥
   ssh-add "$TEMP_SSH_DIR/NeoPorcoDev"
   
@@ -35,6 +40,15 @@ if [ -f /root/.ssh/NeoPorcoDev ]; then
   # 测试 GitHub 连接
   echo "🧪 测试 GitHub SSH 连接..."
   ssh -o BatchMode=yes -o ConnectTimeout=5 -T git@github.com 2>&1 | head -3
+  
+  # 将环境变量添加到 .bashrc 和 .profile，这样新的终端会话会自动加载
+  echo "" >> /root/.bashrc
+  echo "# Auto-load SSH Agent environment" >> /root/.bashrc
+  echo "if [ -f /tmp/ssh-agent-env ]; then" >> /root/.bashrc
+  echo "  source /tmp/ssh-agent-env" >> /root/.bashrc
+  echo "fi" >> /root/.bashrc
+  
+  echo "💡 SSH环境已配置，新终端会话会自动加载SSH认证"
   
 else
   echo "⚠️  SSH 密钥不存在: /root/.ssh/NeoPorcoDev"
