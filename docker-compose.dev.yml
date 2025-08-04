@@ -17,7 +17,7 @@ services:
       - /app/node_modules # 避免覆盖容器内的 node_modules
       - /app/.next # 避免覆盖构建缓存
       # 挂载上级目录的 SSH 密钥
-      - ../.ssh:/root/.ssh:ro
+      - ../.ssh:/root/.ssh
     restart: unless-stopped
     command: sh /app/start-dev.sh
     networks:
