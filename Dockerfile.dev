@@ -12,8 +12,32 @@ RUN npm ci
 # 复制源代码
 COPY . .
 
+# 创建 SSH 目录并设置权限
+RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
+
+# 创建启动脚本（SSH 持久化版本）
+RUN echo '#!/bin/sh' > /app/start-dev.sh && \
+    echo 'echo "🔑 正在设置 SSH Agent..."' >> /app/start-dev.sh && \
+    echo '# 确保 SSH 目录权限正确' >> /app/start-dev.sh && \
+    echo 'chmod 700 /root/.ssh' >> /app/start-dev.sh && \
+    echo 'if [ -f /root/.ssh/NeoPorcoDev ]; then' >> /app/start-dev.sh && \
+    echo '  chmod 600 /root/.ssh/NeoPorcoDev' >> /app/start-dev.sh && \
+    echo '  eval "$(ssh-agent -s)" > /dev/null' >> /app/start-dev.sh && \
+    echo '  ssh-add /root/.ssh/NeoPorcoDev 2>/dev/null' >> /app/start-dev.sh && \
+    echo '  echo "✅ SSH 密钥已自动加载"' >> /app/start-dev.sh && \
+    echo 'else' >> /app/start-dev.sh && \
+    echo '  echo "⚠️  SSH 密钥不存在，请手动设置"' >> /app/start-dev.sh && \
+    echo 'fi' >> /app/start-dev.sh && \
+    echo '# 添加 GitHub 到 known_hosts（如果还没有）' >> /app/start-dev.sh && \
+    echo 'if ! grep -q "github.com" /root/.ssh/known_hosts 2>/dev/null; then' >> /app/start-dev.sh && \
+    echo '  ssh-keyscan github.com >> /root/.ssh/known_hosts 2>/dev/null' >> /app/start-dev.sh && \
+    echo 'fi' >> /app/start-dev.sh && \
+    echo 'echo "🚀 启动开发服务器..."' >> /app/start-dev.sh && \
+    echo 'exec npm run dev' >> /app/start-dev.sh && \
+    chmod +x /app/start-dev.sh
+
 # 暴露端口
 EXPOSE 3001
 
-# 开发模式启动命令
-CMD ["npm", "run", "dev"]
+# 使用启动脚本
+CMD ["/app/start-dev.sh"]

@@ -7,17 +7,19 @@ services:
       dockerfile: Dockerfile.dev
     container_name: punch-feedback-app-dev
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
     volumes:
       # 挂载源代码，支持热重载
       - .:/app
-      - /app/node_modules  # 避免覆盖容器内的 node_modules
-      - /app/.next         # 避免覆盖构建缓存
+      - /app/node_modules # 避免覆盖容器内的 node_modules
+      - /app/.next # 避免覆盖构建缓存
+      # 挂载上级目录的 SSH 密钥
+      - ../.ssh:/root/.ssh:ro
     restart: unless-stopped
-    command: npm run dev
+    command: /app/start-dev.sh
     networks:
       - dev-network
 
