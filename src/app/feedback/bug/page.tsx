@@ -2,21 +2,85 @@
 
 import Link from 'next/link'
 import { ArrowLeft, Bug, FileText } from 'lucide-react'
+import { useState, useEffect, useActionState } from 'react'
 import BidlinkDebugPanel from '@/components/BidlinkDebugPanel'
-import { useState, useEffect } from 'react'
+
 import {
   isBidlinkApp,
   getEnvironmentInfo,
   formatFileSize,
 } from '@/utils/bidlinkFileInterface'
-import {
-  uploadCrashLogAction,
-  submitBugReportAction,
-} from '@/lib/actions/upload-actions'
+import { submitBugsAction } from '@/lib/actions/upload-actions'
 
 export default function BugFeedback() {
   const [isBidlink, setIsBidlink] = useState<boolean>(false)
-  const [crashLogFile, setCrashLogFile] = useState<string | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<number>(0)
+
+  // 使用 useActionState 来处理表单提交
+  const [state, submitAction, isPending] = useActionState(
+    async (prevState: any, formData: FormData) => {
+      setUploadProgress(25)
+      try {
+        // 如果在 Bidlink 环境中，尝试读取最新的崩溃日志
+        if (isBidlink) {
+          setUploadProgress(40)
+          const latestCrashLog = await loadExceptionLogZip()
+          if (latestCrashLog) {
+            console.log(
+              '准备上传最新崩溃日志，字符串长度:',
+              formatFileSize(latestCrashLog.length)
+            )
+            // 直接添加 base64 字符串到 FormData
+            formData.append('crashLogBase64', latestCrashLog)
+            formData.append('deviceId', 'android-webview')
+            formData.append('appVersion', '1.0.0')
+            formData.append('timestamp', new Date().toISOString())
+            setUploadProgress(60)
+          }
+        }
+        setUploadProgress(75)
+        // 提交表单数据
+        const result = await submitBugsAction(formData)
+        setUploadProgress(100)
+        if (result.success) {
+          if (window.bidlinkSupport?.onCrashLogUploaded) {
+            window.bidlinkSupport.onCrashLogUploaded(result)
+          }
+          return {
+            success: true,
+            message: result.message,
+          }
+        } else {
+          throw new Error(result.message)
+        }
+      } catch (error) {
+        setUploadProgress(0)
+        return {
+          success: false,
+          message: error instanceof Error ? error.message : '未知错误',
+        }
+      }
+    },
+    { success: false, message: '' }
+  )
+
+  // 当提交成功时显示消息并重置进度
+  useEffect(() => {
+    if (state.success && state.message) {
+      alert(state.message)
+      setUploadProgress(0)
+    } else if (!state.success && state.message) {
+      alert(`提交失败: ${state.message}`)
+      setUploadProgress(0)
+    }
+  }, [state])
+
+  // 当开始提交时重置进度
+  useEffect(() => {
+    if (isPending) {
+      setUploadProgress(10)
+    }
+  }, [isPending])
 
   // 表单状态
   const [formData, setFormData] = useState({
@@ -24,17 +88,11 @@ export default function BugFeedback() {
     steps: '',
     contact: '',
   })
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
-  const [uploadProgress, setUploadProgress] = useState<number>(0) // 添加上传进度
 
   useEffect(() => {
     // 检查是否在Bidlink应用中
     getEnvironmentInfo().then(() => {
-      const inBidlinkApp = isBidlinkApp()
-      setIsBidlink(inBidlinkApp)
-      if (inBidlinkApp) {
-        loadExceptionLogZip()
-      }
+      setIsBidlink(isBidlinkApp())
     })
   }, [])
 
@@ -49,76 +107,18 @@ export default function BugFeedback() {
     }))
   }
 
-  // 提交表单 - 使用 Server Actions（包含文件上传）
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      // 构建 FormData，包含所有数据
-      const submitData = new FormData()
-      submitData.append('description', formData.description)
-      submitData.append('steps', formData.steps)
-      submitData.append('contact', formData.contact)
-
-      // 如果有崩溃日志，添加到同一个请求中
-      if (isBidlink && crashLogFile && crashLogFile !== 'uploaded') {
-        setUploadProgress(25)
-
-        // 将 base64 转换为 Blob
-        const byteCharacters = atob(crashLogFile.split(',')[1] || crashLogFile)
-        const byteNumbers = new Array(byteCharacters.length)
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i)
-        }
-        const byteArray = new Uint8Array(byteNumbers)
-        const file = new Blob([byteArray], { type: 'application/zip' })
-
-        console.log('准备上传崩溃日志，文件大小:', formatFileSize(file.size))
-
-        // 添加文件到同一个 FormData
-        submitData.append('crashLogFile', file, `crash-log-${Date.now()}.zip`)
-        submitData.append('deviceId', 'android-webview')
-        submitData.append('appVersion', '1.0.0')
-        submitData.append('timestamp', new Date().toISOString())
-
-        setUploadProgress(50)
-      }
-
-      // 一次性提交所有数据
-      const result = await submitBugReportAction(submitData)
-
-      setUploadProgress(75)
-
-      if (result.success) {
-        setUploadProgress(100)
-
-        // 清空表单
-        setFormData({
-          description: '',
-          steps: '',
-          contact: '',
-        })
-        setCrashLogFile('uploaded')
-
-        alert(result.message)
-
-        if (window.bidlinkSupport?.onCrashLogUploaded) {
-          window.bidlinkSupport.onCrashLogUploaded(result)
-        }
-      } else {
-        throw new Error(result.message)
-      }
-    } catch (error) {
-      setUploadProgress(0)
-      const errorMessage = error instanceof Error ? error.message : '未知错误'
-      alert(`提交失败: ${errorMessage}`)
-    } finally {
-      setIsSubmitting(false)
+  // 当提交成功时重置表单
+  useEffect(() => {
+    if (state.success) {
+      setFormData({
+        description: '',
+        steps: '',
+        contact: '',
+      })
     }
-  }
+  }, [state.success])
 
-  const loadExceptionLogZip = async () => {
+  const loadExceptionLogZip = async (): Promise<string | null> => {
     try {
       if (typeof window !== 'undefined' && window.bidlinkSupport) {
         if (window.bidlinkSupport.loadCrashLogs) {
@@ -131,7 +131,6 @@ export default function BugFeedback() {
             typeof base64Zip === 'string' &&
             base64Zip.trim().length > 0
           ) {
-            setCrashLogFile(base64Zip)
             console.log(
               base64Zip.length > 13 * 1024 * 1024
                 ? '⚠️ 崩溃日志文件较大:'
@@ -141,7 +140,7 @@ export default function BugFeedback() {
             return base64Zip
           } else {
             console.log('⚠️ 未找到有效的崩溃日志文件')
-            setCrashLogFile(null)
+            return null
           }
         }
       } else {
@@ -149,12 +148,64 @@ export default function BugFeedback() {
       }
     } catch (error) {
       console.error('加载异常日志失败:', error)
-      setCrashLogFile(null) // 确保错误时重置状态
     }
+    return null
   }
 
   return (
-    <div>
+    <div className="relative">
+      {/* 全屏加载蒙层 */}
+      {isPending && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-sm w-full mx-4 shadow-2xl">
+            <div className="flex flex-col items-center space-y-4">
+              {/* 加载动画 */}
+              <div className="relative">
+                <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-spin">
+                  <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+              </div>
+
+              {/* 进度信息 */}
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  正在提交反馈
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  {uploadProgress <= 25 && '正在准备数据...'}
+                  {uploadProgress > 25 &&
+                    uploadProgress <= 40 &&
+                    '检测崩溃日志...'}
+                  {uploadProgress > 40 &&
+                    uploadProgress <= 60 &&
+                    '读取日志文件...'}
+                  {uploadProgress > 60 &&
+                    uploadProgress <= 75 &&
+                    '上传数据中...'}
+                  {uploadProgress > 75 && '处理反馈信息...'}
+                </p>
+
+                {/* 进度条 */}
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {uploadProgress}% 完成
+                </p>
+              </div>
+
+              {/* 提示信息 */}
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                请稍候，不要关闭页面...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col justify-start items-center gap-2">
         {/* 返回按钮 */}
         <Link
@@ -180,23 +231,19 @@ export default function BugFeedback() {
 
         {/* 反馈表单 */}
         <form
-          onSubmit={handleSubmit}
+          action={submitAction}
           className="mt-2 w-full max-w-full sm:max-w-[90%] md:max-w-[80%] lg:max-w-[70%] p-2 space-y-4"
         >
           <div className="flex flex-col">
-            <label htmlFor="description">问题详情 {!crashLogFile && '*'}</label>
+            <label htmlFor="description">问题详情</label>
             <textarea
               className="rounded p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
               id="description"
+              name="description"
               rows={4}
               value={formData.description}
               onChange={handleInputChange}
-              placeholder={
-                crashLogFile
-                  ? '问题详情（可选，已有崩溃日志）'
-                  : '请详细描述问题的发生过程、错误信息等'
-              }
-              required={!crashLogFile}
+              placeholder="请详细描述问题的发生过程、错误信息等"
             />
           </div>
 
@@ -205,6 +252,7 @@ export default function BugFeedback() {
             <textarea
               className="rounded p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
               id="steps"
+              name="steps"
               rows={4}
               value={formData.steps}
               onChange={handleInputChange}
@@ -212,50 +260,12 @@ export default function BugFeedback() {
             />
           </div>
 
-          {isBidlink && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <FileText
-                size={20}
-                className="text-blue-600 dark:text-blue-400"
-              />
-              <div className="flex flex-col flex-1">
-                <span className="text-blue-800 dark:text-blue-200 font-medium">
-                  {crashLogFile === 'uploaded'
-                    ? '✅ 异常日志已上传'
-                    : crashLogFile
-                      ? '✅ 异常日志已准备好'
-                      : '📂 正在加载异常日志...'}
-                </span>
-                {crashLogFile && crashLogFile !== 'uploaded' && (
-                  <div className="flex flex-col gap-1">
-                    <span className="text-blue-600 dark:text-blue-400 text-sm">
-                      文件大小: {formatFileSize(crashLogFile.length)} |
-                      日志将随反馈一起自动上传
-                    </span>
-                    {crashLogFile.length > 6 * 1024 * 1024 && (
-                      <span className="text-orange-600 dark:text-orange-400 text-xs">
-                        ⚠️ 文件较大，上传可能需要一些时间
-                      </span>
-                    )}
-                  </div>
-                )}
-                {uploadProgress > 0 && uploadProgress < 100 && (
-                  <div className="mt-2">
-                    <div className="flex justify-between text-xs text-blue-600 dark:text-blue-400 mb-1">
-                      <span>上传中...</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <div className="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-              </div>
+          <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <FileText size={20} className="text-blue-600 dark:text-blue-400" />
+            <div className="flex flex-col flex-1 text-blue-600 dark:text-blue-400">
+              提交时会自动读取最新的崩溃日志文件
             </div>
-          )}
+          </div>
 
           <div className="flex flex-col">
             <label htmlFor="contact">联系方式</label>
@@ -263,6 +273,7 @@ export default function BugFeedback() {
               className="rounded p-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
               type="email"
               id="contact"
+              name="contact"
               value={formData.contact}
               onChange={handleInputChange}
               placeholder="您的邮箱地址（可选）"
@@ -272,10 +283,10 @@ export default function BugFeedback() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isPending}
               className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <>
                   <span className="inline-block animate-spin mr-2">⏳</span>
                   提交中...

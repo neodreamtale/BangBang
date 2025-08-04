@@ -1,6 +1,15 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // 支持大文件上传
+  experimental: {
+    serverComponentsExternalPackages: [],
+    // 设置 Server Actions 的请求体大小限制
+    serverActions: {
+      bodySizeLimit: '50mb', // 50MB 限制
+    },
+  },
+
   // 针对挂载文件系统的开发配置
   webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
