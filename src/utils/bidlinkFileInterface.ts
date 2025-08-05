@@ -71,42 +71,60 @@ export function isBidlinkApp(): boolean {
 }
 
 /**
- * 获取当前用户ID
+ * 获取当前用户ID（同步版本）
  */
-async function getCurrentUserId(): Promise<string | null> {
-  return new Promise(resolve => {
-    try {
-      // 使用 android.getJid() 获取用户ID
-      if (typeof window.android?.getJid === 'function') {
-        const userId = window.android.getJid()
-        resolve(userId || null)
-      } else {
-        resolve(null)
+export function getUserId(): string | null {
+  try {
+    if (typeof window !== 'undefined' && window.android?.getJid) {
+      const userId = window.android.getJid()
+      if (userId && typeof userId === 'string') {
+        console.log('获取到用户ID:', userId)
+        return userId
       }
-    } catch (error) {
-      console.error('Failed to get user ID:', error)
-      resolve(null)
     }
-  })
+    console.log('无法获取用户ID，android.getJid 不可用')
+    return null
+  } catch (error) {
+    console.error('获取用户ID失败:', error)
+    return null
+  }
 }
 
 /**
- * 获取常见的缓存文件类型
+ * 加载崩溃日志ZIP文件（base64格式）
  */
-export function getCommonCacheFileTypes(): string[] {
-  return [
-    'log',
-    'txt',
-    'json',
-    'xml',
-    'crash',
-    'dump',
-    'db',
-    'sqlite',
-    'cache',
-    'tmp',
-    'temp',
-  ]
+export async function loadExceptionLogZip(): Promise<string | null> {
+  try {
+    if (typeof window !== 'undefined' && window.bidlinkSupport) {
+      if (window.bidlinkSupport.loadCrashLogs) {
+        const base64Zip = await window.bidlinkSupport.loadCrashLogs()
+        console.log('加载到的异常日志长度:', base64Zip?.length || 0)
+
+        // 检查是否真的读取到了有效的文件内容
+        if (
+          base64Zip &&
+          typeof base64Zip === 'string' &&
+          base64Zip.trim().length > 0
+        ) {
+          console.log(
+            base64Zip.length > 13 * 1024 * 1024
+              ? '⚠️ 崩溃日志文件较大:'
+              : '✅ 成功加载崩溃日志文件:',
+            formatFileSize(base64Zip.length)
+          )
+          return base64Zip
+        } else {
+          console.log('⚠️ 未找到有效的崩溃日志文件')
+          return null
+        }
+      }
+    } else {
+      console.log('未检测到 bidlinkSupport 接口')
+    }
+  } catch (error) {
+    console.error('加载异常日志失败:', error)
+  }
+  return null
 }
 
 /**
@@ -119,96 +137,6 @@ export function isBidlinkWebView(): boolean {
       typeof window.android !== 'undefined')
   )
 }
-
-/**
- * 获取当前用户ID
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function getUserLogInfo(_userId: string): Promise<{
-  userId: string
-  logCount: number
-  totalSize: number
-  folderPath: string
-} | null> {
-  return new Promise(resolve => {
-    try {
-      // Android interface methods have been removed
-      // This function now returns null
-      resolve(null)
-    } catch (error) {
-      console.error('Failed to get user log info:', error)
-      resolve(null)
-    }
-  })
-}
-
-/**
- * 创建用户日志的ZIP文件
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function createUserLogZip(
-  _userId: string
-): Promise<string | null> {
-  return new Promise(resolve => {
-    try {
-      // Android interface methods have been removed
-      // This function now returns null
-      resolve(null)
-    } catch (error) {
-      console.error('Failed to create user log zip:', error)
-      resolve(null)
-    }
-  })
-}
-
-/**
- * 清理用户的所有日志文件
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function cleanupUserLogs(_userId: string): Promise<boolean> {
-  return new Promise(resolve => {
-    try {
-      // Android interface methods have been removed
-      // This function now returns false
-      resolve(false)
-    } catch (error) {
-      console.error('Failed to cleanup user logs:', error)
-      resolve(false)
-    }
-  })
-}
-
-/**
- * 获取应用信息（如果可用）
- */
-export async function getBidlinkAppInfo(): Promise<{
-  packageName?: string
-  versionName?: string
-  versionCode?: number
-  detected: boolean
-  method?: string
-  debugMode?: boolean
-} | null> {
-  if (!isBidlinkApp()) {
-    return null
-  }
-
-  return new Promise(resolve => {
-    try {
-      // Android interface methods have been removed
-      // Return basic information
-      resolve({
-        packageName: 'com.bidlink.cn',
-        detected: true,
-        method: 'javascript_detection',
-      })
-    } catch {
-      resolve(null)
-    }
-  })
-}
-
-// ====== 环境检测功能 ======
 
 /**
  * 检测浏览器信息
@@ -487,10 +415,26 @@ function setupMockAndroidInterface(): void {
     getToken: (userId: string) => `mock_token_for_${userId}`,
   }
 
+  const mockBidlinkSupport = {
+    getDeviceInfo: () => ({ deviceModel: 'Mock Device', osVersion: 'Mock OS' }),
+    loadCrashLogs: () =>
+      Promise.resolve('UEsDBAoAAAAAAAECA...mock_base64_zip_content'),
+    onCrashLogUploaded: () => console.log('Mock: 崩溃日志上传回调'),
+    getUserId: () => 'debug_user_123',
+    getJid: () => 'debug_user_123',
+    userInfo: {
+      userId: 'debug_user_123',
+      userName: 'Debug User',
+    },
+  }
+
   window.MockAndroid = mockAndroid
   window.android = mockAndroid
+  window.bidlinkSupport = mockBidlinkSupport
 
-  console.log('🔧 模拟 Android 接口已设置', mockAndroid)
+  console.log('🔧 模拟接口已设置:')
+  console.log('- window.android:', mockAndroid)
+  console.log('- window.bidlinkSupport:', mockBidlinkSupport)
 }
 
 /**

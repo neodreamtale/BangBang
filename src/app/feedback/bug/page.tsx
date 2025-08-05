@@ -10,6 +10,8 @@ import {
   isBidlinkApp,
   getEnvironmentInfo,
   formatFileSize,
+  getUserId,
+  loadExceptionLogZip,
 } from '@/utils/bidlinkFileInterface'
 import { submitBugsAction } from '@/lib/actions/upload-actions'
 
@@ -26,16 +28,12 @@ export default function BugFeedback() {
         if (isBidlink) {
           setUploadProgress(40)
           const latestCrashLog = await loadExceptionLogZip()
+          formData.append('userId', getUserId() ?? '')
+          formData.append('timestamp', new Date().toLocaleString())
           if (latestCrashLog) {
-            console.log(
-              '准备上传最新崩溃日志，字符串长度:',
-              formatFileSize(latestCrashLog.length)
-            )
+            console.log('最新崩溃日志:', formatFileSize(latestCrashLog.length))
             // 直接添加 base64 字符串到 FormData
             formData.append('crashLogBase64', latestCrashLog)
-            formData.append('deviceId', 'android-webview')
-            formData.append('appVersion', '1.0.0')
-            formData.append('timestamp', new Date().toISOString())
             setUploadProgress(60)
           }
         }
@@ -45,7 +43,7 @@ export default function BugFeedback() {
         setUploadProgress(100)
         if (result.success) {
           if (window.bidlinkSupport?.onCrashLogUploaded) {
-            window.bidlinkSupport.onCrashLogUploaded()
+            // window.bidlinkSupport.onCrashLogUploaded()
           }
           return {
             success: true,
@@ -95,6 +93,17 @@ export default function BugFeedback() {
     // 检查是否在Bidlink应用中
     getEnvironmentInfo().then(() => {
       setIsBidlink(isBidlinkApp())
+
+      // 调试信息：检查可用的接口
+      console.log('🔍 环境调试信息:')
+      console.log('- isBidlinkApp():', isBidlinkApp())
+      console.log(
+        '- window.bidlinkSupport:',
+        typeof window.bidlinkSupport,
+        window.bidlinkSupport
+      )
+      console.log('- window.android:', typeof window.android, window.android)
+      console.log('- getUserId():', getUserId())
     })
   }, [])
 
@@ -119,40 +128,6 @@ export default function BugFeedback() {
       })
     }
   }, [state.success])
-
-  const loadExceptionLogZip = async (): Promise<string | null> => {
-    try {
-      if (typeof window !== 'undefined' && window.bidlinkSupport) {
-        if (window.bidlinkSupport.loadCrashLogs) {
-          const base64Zip = await window.bidlinkSupport.loadCrashLogs()
-          console.log('加载到的异常日志长度:', base64Zip?.length || 0)
-
-          // 检查是否真的读取到了有效的文件内容
-          if (
-            base64Zip &&
-            typeof base64Zip === 'string' &&
-            base64Zip.trim().length > 0
-          ) {
-            console.log(
-              base64Zip.length > 13 * 1024 * 1024
-                ? '⚠️ 崩溃日志文件较大:'
-                : '✅ 成功加载崩溃日志文件:',
-              formatFileSize(base64Zip.length)
-            )
-            return base64Zip
-          } else {
-            console.log('⚠️ 未找到有效的崩溃日志文件')
-            return null
-          }
-        }
-      } else {
-        console.log('未检测到 bidlinkSupport 接口')
-      }
-    } catch (error) {
-      console.error('加载异常日志失败:', error)
-    }
-    return null
-  }
 
   // 生成进度描述文本
   const getProgressText = (progress: number) => {
