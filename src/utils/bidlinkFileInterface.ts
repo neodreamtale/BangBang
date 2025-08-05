@@ -10,7 +10,7 @@ declare global {
     bidlinkSupport?: {
       getDeviceInfo?: () => Record<string, unknown>
       loadCrashLogs?: () => string | Promise<string>
-      onCrashLogUploaded?: (result: any) => void
+      onCrashLogUploaded?: () => void
     }
     // Android WebView 接口
     android?: {

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Bug, FileText } from 'lucide-react'
 import { useState, useEffect, useActionState } from 'react'
 import BidlinkDebugPanel from '@/components/BidlinkDebugPanel'
+import LoadingOverlay from '@/components/LoadingOverlay'
 
 import {
   isBidlinkApp,
@@ -44,7 +45,7 @@ export default function BugFeedback() {
         setUploadProgress(100)
         if (result.success) {
           if (window.bidlinkSupport?.onCrashLogUploaded) {
-            window.bidlinkSupport.onCrashLogUploaded(result)
+            window.bidlinkSupport.onCrashLogUploaded()
           }
           return {
             success: true,
@@ -70,6 +71,7 @@ export default function BugFeedback() {
       alert(state.message)
       setUploadProgress(0)
     } else if (!state.success && state.message) {
+      console.info(state)
       alert(`提交失败: ${state.message}`)
       setUploadProgress(0)
     }
@@ -152,59 +154,25 @@ export default function BugFeedback() {
     return null
   }
 
+  // 生成进度描述文本
+  const getProgressText = (progress: number) => {
+    if (progress <= 25) return '正在准备数据...'
+    if (progress <= 40) return '检测崩溃日志...'
+    if (progress <= 60) return '读取日志文件...'
+    if (progress <= 75) return '上传数据中...'
+    return '处理反馈信息...'
+  }
+
   return (
     <div className="relative">
       {/* 全屏加载蒙层 */}
-      {isPending && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-sm w-full mx-4 shadow-2xl">
-            <div className="flex flex-col items-center space-y-4">
-              {/* 加载动画 */}
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-spin">
-                  <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-blue-600 rounded-full animate-spin"></div>
-                </div>
-              </div>
-
-              {/* 进度信息 */}
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  正在提交反馈
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  {uploadProgress <= 25 && '正在准备数据...'}
-                  {uploadProgress > 25 &&
-                    uploadProgress <= 40 &&
-                    '检测崩溃日志...'}
-                  {uploadProgress > 40 &&
-                    uploadProgress <= 60 &&
-                    '读取日志文件...'}
-                  {uploadProgress > 60 &&
-                    uploadProgress <= 75 &&
-                    '上传数据中...'}
-                  {uploadProgress > 75 && '处理反馈信息...'}
-                </p>
-
-                {/* 进度条 */}
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
-                    style={{ width: `${uploadProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {uploadProgress}% 完成
-                </p>
-              </div>
-
-              {/* 提示信息 */}
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                请稍候，不要关闭页面...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      <LoadingOverlay
+        isVisible={isPending}
+        title="正在提交反馈"
+        progress={uploadProgress}
+        progressText={getProgressText(uploadProgress)}
+        description="请稍候，不要关闭页面..."
+      />
 
       <div className="flex flex-col justify-start items-center gap-2">
         {/* 返回按钮 */}
