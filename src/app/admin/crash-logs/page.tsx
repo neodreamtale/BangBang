@@ -6,7 +6,6 @@ import { ArrowLeft, FileText, Download } from 'lucide-react'
 
 interface CrashLog {
   fileName: string
-  deviceId: string
   uploadTime: string
   fileSize: number
   fileSizeReadable: string
@@ -111,12 +110,6 @@ export default function CrashLogsAdmin() {
               </p>
               <p className="text-gray-600 dark:text-gray-400">总文件大小</p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">
-                {new Set(logs.map(log => log.deviceId)).size}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">设备数量</p>
-            </div>
           </div>
         </div>
 
@@ -162,9 +155,6 @@ export default function CrashLogsAdmin() {
                             {log.fileName}
                           </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {log.deviceId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(log.uploadTime)}
