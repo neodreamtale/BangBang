@@ -41,9 +41,7 @@ export async function submitBugsAction(formData: FormData) {
 
     return {
       success: true,
-      message: crashLogBase64
-        ? 'Bug 反馈和崩溃日志提交成功！'
-        : 'Bug 反馈提交成功！',
+      message: crashLogBase64 ? 'Bug 反馈和崩溃日志提交成功！' : 'Bug 反馈提交成功！',
       uploadResult,
     }
   } catch (error) {
@@ -104,10 +102,7 @@ function validateFileSize(buffer: Buffer): { valid: boolean; error?: string } {
 /**
  * 解压ZIP文件到指定目录
  */
-async function extractZipFile(
-  zipFilePath: string,
-  extractToDir: string
-): Promise<void> {
+async function extractZipFile(zipFilePath: string, extractToDir: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const unzipProcess = spawn('unzip', ['-o', zipFilePath, '-d', extractToDir])
 
@@ -126,10 +121,7 @@ async function extractZipFile(
 /**
  * 处理崩溃日志上传
  */
-async function processCrashLogUpload({
-  crashLogBase64,
-  userId,
-}: CrashLogData): Promise<UploadResult> {
+async function processCrashLogUpload({ crashLogBase64, userId }: CrashLogData): Promise<UploadResult> {
   try {
     // 创建用户目录
     const uploadDir = await createUserDirectory(userId)
@@ -171,9 +163,7 @@ async function processCrashLogUpload({
     return {
       success: true,
       filename,
-      message: filename.toLowerCase().endsWith('.zip')
-        ? '崩溃日志上传并解压成功'
-        : '崩溃日志上传成功',
+      message: filename.toLowerCase().endsWith('.zip') ? '崩溃日志上传并解压成功' : '崩溃日志上传成功',
       size: buffer.length,
     }
   } catch (error) {
