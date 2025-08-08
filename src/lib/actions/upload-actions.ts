@@ -3,6 +3,7 @@
 import { promises as fs } from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
+import { prisma } from '@/lib/prisma'
 
 export interface UploadResult {
   success: boolean
@@ -30,13 +31,28 @@ export async function submitBugsAction(formData: FormData) {
       }
     }
 
-    // 处理 Bug 反馈数据
-    console.log('Bug 反馈提交:', {
-      description,
-      steps,
-      contact,
-      hasCrashLog: !!crashLogBase64,
-      uploadResult,
+    // 处理 Bug 反馈数据 - 保存到数据库
+    const bugReport = await prisma.bugReport.create({
+      data: {
+        description,
+        steps: steps || null,
+        contact: contact || null,
+        userId: userId || null,
+        hasCrashLog: !!crashLogBase64,
+        crashLogPath: uploadResult?.success ? uploadResult.filename : null,
+        crashLogSize: uploadResult?.size || null,
+        crashLogFilename: uploadResult?.filename || null,
+        status: 'open',
+        priority: 'medium',
+      },
+    })
+
+    console.log('Bug 反馈已保存到数据库:', {
+      id: bugReport.id,
+      description: bugReport.description,
+      hasCrashLog: bugReport.hasCrashLog,
+      userId: bugReport.userId,
+      createdAt: bugReport.createdAt,
     })
 
     return {
@@ -49,6 +65,63 @@ export async function submitBugsAction(formData: FormData) {
     return {
       success: false,
       message: error instanceof Error ? error.message : '提交失败',
+    }
+  }
+}
+
+/**
+ * 处理崩溃日志上传
+ */
+async function processCrashLogUpload({ crashLogBase64, userId }: CrashLogData): Promise<UploadResult> {
+  try {
+    // 创建用户目录
+    const uploadDir = await createUserDirectory(userId)
+
+    // 生成文件名和路径
+    const filename = getTempFileName()
+    const filepath = path.join(uploadDir, filename)
+
+    // 转换 base64 为 Buffer
+    const base64Data = crashLogBase64.split(',')[1] || crashLogBase64
+    const buffer = Buffer.from(base64Data, 'base64')
+
+    // 验证文件大小
+    const validation = validateFileSize(buffer)
+    if (!validation.valid) {
+      return {
+        success: false,
+        message: validation.error!,
+      }
+    }
+
+    // 写入文件
+    await fs.writeFile(filepath, buffer)
+
+    // 如果是ZIP文件，解压并删除原文件
+    if (filename.toLowerCase().endsWith('.zip')) {
+      try {
+        await extractZipFile(filepath, uploadDir)
+        await fs.unlink(filepath) // 删除原ZIP文件
+        console.log(`✅ ZIP file extracted to: ${uploadDir}`)
+      } catch (error) {
+        console.error('❌ Failed to extract ZIP file:', error)
+        // 解压失败时保留原文件
+      }
+    }
+
+    console.log(`崩溃日志上传成功: ${filename}, 大小: ${buffer.length} bytes`)
+
+    return {
+      success: true,
+      filename,
+      message: filename.toLowerCase().endsWith('.zip') ? '崩溃日志上传并解压成功' : '崩溃日志上传成功',
+      size: buffer.length,
+    }
+  } catch (error) {
+    console.error('处理崩溃日志失败:', error)
+    return {
+      success: false,
+      message: `崩溃日志处理失败: ${error instanceof Error ? error.message : '未知错误'}`,
     }
   }
 }
@@ -116,61 +189,4 @@ async function extractZipFile(zipFilePath: string, extractToDir: string): Promis
 
     unzipProcess.on('error', reject)
   })
-}
-
-/**
- * 处理崩溃日志上传
- */
-async function processCrashLogUpload({ crashLogBase64, userId }: CrashLogData): Promise<UploadResult> {
-  try {
-    // 创建用户目录
-    const uploadDir = await createUserDirectory(userId)
-
-    // 生成文件名和路径
-    const filename = getTempFileName()
-    const filepath = path.join(uploadDir, filename)
-
-    // 转换 base64 为 Buffer
-    const base64Data = crashLogBase64.split(',')[1] || crashLogBase64
-    const buffer = Buffer.from(base64Data, 'base64')
-
-    // 验证文件大小
-    const validation = validateFileSize(buffer)
-    if (!validation.valid) {
-      return {
-        success: false,
-        message: validation.error!,
-      }
-    }
-
-    // 写入文件
-    await fs.writeFile(filepath, buffer)
-
-    // 如果是ZIP文件，解压并删除原文件
-    if (filename.toLowerCase().endsWith('.zip')) {
-      try {
-        await extractZipFile(filepath, uploadDir)
-        await fs.unlink(filepath) // 删除原ZIP文件
-        console.log(`✅ ZIP file extracted to: ${uploadDir}`)
-      } catch (error) {
-        console.error('❌ Failed to extract ZIP file:', error)
-        // 解压失败时保留原文件
-      }
-    }
-
-    console.log(`崩溃日志上传成功: ${filename}, 大小: ${buffer.length} bytes`)
-
-    return {
-      success: true,
-      filename,
-      message: filename.toLowerCase().endsWith('.zip') ? '崩溃日志上传并解压成功' : '崩溃日志上传成功',
-      size: buffer.length,
-    }
-  } catch (error) {
-    console.error('处理崩溃日志失败:', error)
-    return {
-      success: false,
-      message: `崩溃日志处理失败: ${error instanceof Error ? error.message : '未知错误'}`,
-    }
-  }
 }

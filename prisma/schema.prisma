@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model BugReport {
+  id          String   @id @default(cuid())
+  description String
+  steps       String?
+  contact     String?
+  userId      String?
+  hasCrashLog Boolean  @default(false)
+  crashLogPath String?
+  crashLogSize Int?
+  crashLogFilename String?
+  status      String   @default("open") // open, in-progress, resolved, closed
+  priority    String   @default("medium") // low, medium, high, critical
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  crashLogs   CrashLog[]
+
+  @@map("bug_reports")
+}
+
+model CrashLog {
+  id          String    @id @default(cuid())
+  userId      String?
+  filename    String
+  originalPath String
+  extractedPath String?
+  fileSize    Int
+  uploadedAt  DateTime  @default(now())
+  bugReportId String?
+  bugReport   BugReport? @relation(fields: [bugReportId], references: [id])
+
+  @@map("crash_logs")
+}
