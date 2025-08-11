@@ -106,5 +106,8 @@
       "visibility": "public",
       "label": "Next.js Development Server"
     }
+  },
+  "[dockercompose]": {
+    "editor.defaultFormatter": "docker.docker"
   }
 }

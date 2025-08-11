@@ -11,6 +11,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
+      - CHOKIDAR_USEPOLLING=true
     volumes:
       # 挂载源代码，支持热重载
       - .:/app
@@ -19,7 +20,7 @@ services:
       # 挂载Windows用户目录的 SSH 密钥
       - ~/.ssh:/root/.ssh
     restart: unless-stopped
-    command: sh /app/start-dev.sh
+    command: h -c "npm config set registry https://registry.npmjs.org && npm run dev"
     networks:
       - dev-network
 
