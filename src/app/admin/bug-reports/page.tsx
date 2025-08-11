@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma'
 
 export default async function AdminPage() {
-  // 查询 bugReport 并关联 crashLog
   const bugReports = await prisma.bugReport.findMany({
     orderBy: { createdAt: 'desc' },
     take: 20,
@@ -30,7 +29,7 @@ export default async function AdminPage() {
             {bugReports.map(report => {
               return (
                 <tr key={report.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{report.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{report.id}222</td>
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.description}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.userId || 'Anonymous'}</td>
                   <td className="px-6 py-4 whitespace-nowrap">

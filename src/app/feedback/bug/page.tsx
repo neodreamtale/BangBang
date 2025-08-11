@@ -6,13 +6,7 @@ import { useState, useEffect, useActionState } from 'react'
 import BidlinkDebugPanel from '@/components/BidlinkDebugPanel'
 import LoadingOverlay from '@/components/LoadingOverlay'
 
-import {
-  isBidlinkApp,
-  getEnvironmentInfo,
-  formatFileSize,
-  getUserId,
-  loadExceptionLogZip,
-} from '@/utils/bidlinkFileInterface'
+import { isBidlinkApp, getEnvironmentInfo, formatFileSize, getUserId, loadExceptionLogZip } from '@/utils/bidlinkFileInterface'
 import { submitBugsAction } from '@/lib/actions/upload-actions'
 
 export default function BugFeedback() {
@@ -97,20 +91,14 @@ export default function BugFeedback() {
       // 调试信息：检查可用的接口
       console.log('🔍 环境调试信息:')
       console.log('- isBidlinkApp():', isBidlinkApp())
-      console.log(
-        '- window.bidlinkSupport:',
-        typeof window.bidlinkSupport,
-        window.bidlinkSupport
-      )
+      console.log('- window.bidlinkSupport:', typeof window.bidlinkSupport, window.bidlinkSupport)
       console.log('- window.android:', typeof window.android, window.android)
       console.log('- getUserId():', getUserId())
     })
   }, [])
 
   // 处理表单输入变化
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target
     setFormData(prev => ({
       ...prev,
@@ -151,32 +139,21 @@ export default function BugFeedback() {
 
       <div className="flex flex-col justify-start items-center gap-2">
         {/* 返回按钮 */}
-        <Link
-          href="/"
-          className="flex flex-row justify-start items-center p-2 self-start"
-        >
+        <Link href="/" className="flex flex-row justify-start items-center p-2 self-start">
           <ArrowLeft size={20} />
           返回首页
         </Link>
 
         {/* 页面标题 */}
         <div className="flex justify-center items-center">
-          <Bug
-            size={32}
-            className="text-blue-500 hover:text-blue-600 transition-colors rounded-lg"
-          />
-          <h1 className="text-2xl p-2 bg-gradient-to-r from-red-400 to-blue-300 bg-clip-text text-transparent">
-            Bug反馈
-          </h1>
+          <Bug size={32} className="text-blue-500 hover:text-blue-600 transition-colors rounded-lg" />
+          <h1 className="text-2xl p-2 bg-gradient-to-r from-red-400 to-blue-300 bg-clip-text text-transparent">Bug反馈</h1>
         </div>
 
-        <p>请详细描述您遇到的问题，我们会尽快修复</p>
+        <p>请详细描述您遇到的问题，我们会尽快修复!</p>
 
         {/* 反馈表单 */}
-        <form
-          action={submitAction}
-          className="mt-2 w-full max-w-full sm:max-w-[90%] md:max-w-[80%] lg:max-w-[70%] p-2 space-y-4"
-        >
+        <form action={submitAction} className="mt-2 w-full max-w-full sm:max-w-[90%] md:max-w-[80%] lg:max-w-[70%] p-2 space-y-4">
           <div className="flex flex-col">
             <label htmlFor="description">问题详情</label>
             <textarea
@@ -205,9 +182,7 @@ export default function BugFeedback() {
 
           <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <FileText size={20} className="text-blue-600 dark:text-blue-400" />
-            <div className="flex flex-col flex-1 text-blue-600 dark:text-blue-400">
-              提交时会自动读取最新的崩溃日志文件
-            </div>
+            <div className="flex flex-col flex-1 text-blue-600 dark:text-blue-400">提交时会自动读取最新的崩溃日志文件</div>
           </div>
 
           <div className="flex flex-col">
