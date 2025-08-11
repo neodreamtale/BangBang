@@ -1,5 +1,4 @@
 'use server'
-
 import { promises as fs } from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
@@ -119,6 +118,57 @@ async function processCrashLogUpload({ crashLogBase64, userId }: CrashLogData): 
     return {
       success: false,
       message: `崩溃日志处理失败: ${error instanceof Error ? error.message : '未知错误'}`,
+    }
+  }
+}
+
+export async function submitSuggestionAction(formData: FormData) {
+  try {
+    const title = (formData.get('title') || '').toString().trim()
+    const category = (formData.get('category') || '').toString().trim()
+    const description = (formData.get('description') || '').toString().trim()
+    const expected = (formData.get('expected') || '').toString().trim()
+    const contact = (formData.get('contact') || '').toString().trim()
+
+    // 校验必填项
+    if (!title || !category || !description) {
+      return {
+        success: false,
+        message: '请填写所有必填项',
+      }
+    }
+
+    // 允许 expected/contact 为空
+    const suggestion = await prisma.suggestionReport.create({
+      data: {
+        title,
+        category,
+        description,
+        expected: expected || null,
+        contact: contact || null,
+      },
+    })
+
+    console.log('[Suggestion] 新建议已保存:', {
+      id: suggestion.id,
+      title,
+      category,
+      description,
+      expected,
+      contact,
+      createdAt: suggestion.createdAt,
+    })
+
+    return {
+      success: true,
+      message: '改进建议提交成功！',
+      suggestionId: suggestion.id,
+    }
+  } catch (error) {
+    console.error('[Suggestion] 提交失败:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : '提交失败',
     }
   }
 }

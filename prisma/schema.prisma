@@ -25,6 +25,18 @@ model BugReport {
   @@map("bug_reports")
 }
 
+model SuggestionReport {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  description String
+  expected    String?
+  contact     String?
+  createdAt   DateTime @default(now())
+
+  @@map("suggestion_reports")
+}
+
 model CrashLog {
   id          String    @id @default(cuid())
   userId      String?
