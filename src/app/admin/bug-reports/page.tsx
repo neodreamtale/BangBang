@@ -1,14 +1,14 @@
 import { prisma } from '@/lib/prisma'
-import type { BugReport } from '@prisma/client'
 
 export default async function AdminPage() {
-  const bugReports: BugReport[] = await prisma.bugReport.findMany({
-    orderBy: {
-      createdAt: 'desc',
-    },
+  // 查询 bugReport 并关联 crashLog
+  const bugReports = await prisma.bugReport.findMany({
+    orderBy: { createdAt: 'desc' },
     take: 20,
+    include: {
+      crashLogs: true,
+    },
   })
-
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Bug 反馈管理</h1>
@@ -27,46 +27,66 @@ export default async function AdminPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {bugReports.map(report => (
-              <tr key={report.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{report.id.slice(0, 8)}...</td>
-                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.description}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.userId || 'Anonymous'}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      report.status === 'open'
-                        ? 'bg-green-100 text-green-800'
-                        : report.status === 'in-progress'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {report.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      report.priority === 'critical'
-                        ? 'bg-red-100 text-red-800'
-                        : report.priority === 'high'
-                          ? 'bg-orange-100 text-orange-800'
-                          : report.priority === 'medium'
-                            ? 'bg-blue-100 text-blue-800'
+            {bugReports.map(report => {
+              return (
+                <tr key={report.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{report.id}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.description}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.userId || 'Anonymous'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        report.status === 'open'
+                          ? 'bg-green-100 text-green-800'
+                          : report.status === 'in-progress'
+                            ? 'bg-yellow-100 text-yellow-800'
                             : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    {report.priority}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {report.hasCrashLog ? <span className="text-green-600">✓ 有</span> : <span className="text-gray-400">✗ 无</span>}
-                  {report.crashLogSize && <div className="text-xs text-gray-400">{Math.round(report.crashLogSize / 1024)} KB</div>}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(report.createdAt).toLocaleString('zh-CN')}</td>
-              </tr>
-            ))}
+                      }`}
+                    >
+                      {report.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        report.priority === 'critical'
+                          ? 'bg-red-100 text-red-800'
+                          : report.priority === 'high'
+                            ? 'bg-orange-100 text-orange-800'
+                            : report.priority === 'medium'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {report.priority}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {report.crashLogs && report.crashLogs.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {report.crashLogs.map(log => (
+                          <a
+                            key={log.id}
+                            href={`/admin/crash-logs/${log.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline break-all"
+                          >
+                            {log.filename}
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">无日志</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(report.createdAt).toLocaleString('zh-CN')}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
