@@ -20,7 +20,7 @@ services:
       # 挂载Windows用户目录的 SSH 密钥
       - ~/.ssh:/root/.ssh
     restart: unless-stopped
-    command: h -c "npm config set registry https://registry.npmjs.org && npm run dev"
+    command: npm run dev
     networks:
       - dev-network
 
