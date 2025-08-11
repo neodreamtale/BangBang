@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useState, useEffect, useActionState } from 'react'
 import { submitSuggestionAction } from '@/lib/actions/upload-actions'
+import LoadingOverlay from '@/components/LoadingOverlay'
 
 export default function SuggestionFeedback() {
   // 表单状态
@@ -57,8 +58,13 @@ export default function SuggestionFeedback() {
 
   return (
     <div className="relative">
-      {/* 可选：全屏加载蒙层，可根据需要添加 LoadingOverlay 组件 */}
-      {/* <LoadingOverlay isVisible={isPending} title="正在提交建议" /> */}
+      <LoadingOverlay
+        isVisible={isPending}
+        title="正在提交建议"
+        progress={isPending ? 60 : 0}
+        progressText={isPending ? '正在上传数据...' : ''}
+        description="请稍候，不要关闭页面..."
+      />
 
       <div className="flex flex-col justify-start items-center gap-2">
         {/* 返回按钮 */}
