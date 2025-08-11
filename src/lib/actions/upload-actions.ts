@@ -10,6 +10,7 @@ export interface UploadResult {
   filename?: string
   message: string
   size?: number
+  extractedPath?: string
 }
 
 export async function submitBugsAction(formData: FormData) {
@@ -20,37 +21,43 @@ export async function submitBugsAction(formData: FormData) {
     const crashLogBase64 = formData.get('crashLogBase64') as string | null
     const userId = formData.get('userId') as string | null
 
-    // 处理崩溃日志上传（如果有的话）
-    let uploadResult = null
-    if (crashLogBase64 && crashLogBase64.trim().length > 0) {
-      uploadResult = await processCrashLogUpload({ crashLogBase64, userId })
-
-      // 如果上传失败，直接返回错误
-      if (!uploadResult.success) {
-        return uploadResult
-      }
-    }
-
-    // 处理 Bug 反馈数据 - 保存到数据库
+    // 先保存 BugReport 主数据
     const bugReport = await prisma.bugReport.create({
       data: {
         description,
         steps: steps || null,
         contact: contact || null,
         userId: userId || null,
-        hasCrashLog: !!crashLogBase64,
-        crashLogPath: uploadResult?.success ? uploadResult.filename : null,
-        crashLogSize: uploadResult?.size || null,
-        crashLogFilename: uploadResult?.filename || null,
         status: 'open',
         priority: 'medium',
       },
     })
 
+    let uploadResult = null
+    // 如果有崩溃日志，保存 CrashLog 并建立关联
+    if (crashLogBase64 && crashLogBase64.trim().length > 0) {
+      uploadResult = await processCrashLogUpload({ crashLogBase64, userId })
+      if (!uploadResult.success) {
+        // 如果上传失败，删除刚刚创建的 BugReport，避免脏数据
+        await prisma.bugReport.delete({ where: { id: bugReport.id } })
+        return uploadResult
+      }
+      // 保存 CrashLog 并关联 bugReportId
+      await prisma.crashLog.create({
+        data: {
+          userId: userId || null,
+          filename: uploadResult.filename || '',
+          extractedPath: uploadResult.extractedPath || '',
+          fileSize: uploadResult.size || 0,
+          uploadedAt: new Date(),
+          bugReportId: bugReport.id,
+        },
+      })
+    }
+
     console.log('Bug 反馈已保存到数据库:', {
       id: bugReport.id,
       description: bugReport.description,
-      hasCrashLog: bugReport.hasCrashLog,
       userId: bugReport.userId,
       createdAt: bugReport.createdAt,
     })
@@ -74,18 +81,12 @@ export async function submitBugsAction(formData: FormData) {
  */
 async function processCrashLogUpload({ crashLogBase64, userId }: CrashLogData): Promise<UploadResult> {
   try {
-    // 创建用户目录
     const uploadDir = await createUserDirectory(userId)
-
-    // 生成文件名和路径
     const filename = getTempFileName()
     const filepath = path.join(uploadDir, filename)
-
-    // 转换 base64 为 Buffer
+    let extractedPath: string | undefined = filepath
     const base64Data = crashLogBase64.split(',')[1] || crashLogBase64
     const buffer = Buffer.from(base64Data, 'base64')
-
-    // 验证文件大小
     const validation = validateFileSize(buffer)
     if (!validation.valid) {
       return {
@@ -93,29 +94,25 @@ async function processCrashLogUpload({ crashLogBase64, userId }: CrashLogData): 
         message: validation.error!,
       }
     }
-
-    // 写入文件
     await fs.writeFile(filepath, buffer)
-
-    // 如果是ZIP文件，解压并删除原文件
     if (filename.toLowerCase().endsWith('.zip')) {
       try {
         await extractZipFile(filepath, uploadDir)
-        await fs.unlink(filepath) // 删除原ZIP文件
+        await fs.unlink(filepath)
+        extractedPath = uploadDir
         console.log(`✅ ZIP file extracted to: ${uploadDir}`)
       } catch (error) {
         console.error('❌ Failed to extract ZIP file:', error)
-        // 解压失败时保留原文件
+        extractedPath = filepath // 解压失败，保留原文件
       }
     }
-
     console.log(`崩溃日志上传成功: ${filename}, 大小: ${buffer.length} bytes`)
-
     return {
       success: true,
       filename,
       message: filename.toLowerCase().endsWith('.zip') ? '崩溃日志上传并解压成功' : '崩溃日志上传成功',
       size: buffer.length,
+      extractedPath,
     }
   } catch (error) {
     console.error('处理崩溃日志失败:', error)
