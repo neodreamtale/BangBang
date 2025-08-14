@@ -1,48 +1,9 @@
 {
     "name": "Punch Development",
-    "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
-    // 🔧 统一安装的功能组件
-    "features": {
-        "ghcr.io/devcontainers/features/git:1": {},
-        "ghcr.io/devcontainers/features/github-cli:1": {},
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-    },
-    // 🌐 端口转发
-    "forwardPorts": [
-        3001
-    ],
-    "portsAttributes": {
-        "3001": {
-            "label": "Next.js App",
-            "onAutoForward": "notify",
-            "visibility": "public"
-        }
-    },
-    // 🚀 容器创建后自动执行的命令
-    "postCreateCommand": "apk add git openssh-client && npm install && npm run build",
-    // 🎨 VS Code 配置
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-vscode.vscode-typescript-next",
-                "bradlc.vscode-tailwindcss",
-                "esbenp.prettier-vscode",
-                "ms-vscode.vscode-eslint",
-                "bradlc.vscode-tailwindcss"
-            ],
-            "settings": {
-                "typescript.preferences.inlineHints.enabled": true,
-                "editor.formatOnSave": true
-            }
-        }
-    },
-    "remoteUser": "node",
-    // 🔑 环境变量
-    "containerEnv": {
-        "NODE_ENV": "development"
-    },
-    // 📁 工作目录
-    "workspaceFolder": "/workspaces/punch",
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+
+    "postCreateCommand": "npm install", // I suggest commenting it. It takes a long time unneccssary
+
     // 🔒 安全配置 - 不直接挂载 SSH
     "mounts": [
         // 注释掉 SSH 挂载，让每个开发者管理自己的密钥
