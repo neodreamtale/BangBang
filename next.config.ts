@@ -3,7 +3,7 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   // 支持大文件上传
   experimental: {
-    serverComponentsExternalPackages: [],
+    // serverComponentsExternalPackages: [], // Fix next dev warning
     // 设置 Server Actions 的请求体大小限制
     serverActions: {
       bodySizeLimit: '50mb', // 50MB 限制
@@ -11,7 +11,8 @@ const nextConfig: NextConfig = {
   },
 
   // 针对挂载文件系统的开发配置
-  webpack: (config, { dev, isServer }) => {
+  // Fixed
+ /*  webpack: (config, { dev, isServer }) => {
     if (dev && !isServer) {
       // 强制启用文件监听，适配挂载文件系统
       config.watchOptions = {
@@ -30,7 +31,7 @@ const nextConfig: NextConfig = {
       config.cache = false
     }
     return config
-  },
+  }, */
 
   // WebView 专用配置
   async headers() {
