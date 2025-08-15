@@ -3,36 +3,22 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   // 支持大文件上传
   experimental: {
-    // serverComponentsExternalPackages: [], // Fix next dev warning
     // 设置 Server Actions 的请求体大小限制
     serverActions: {
       bodySizeLimit: '50mb', // 50MB 限制
     },
   },
-
-  // 针对挂载文件系统的开发配置
-  // Fixed
- /*  webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      // 强制启用文件监听，适配挂载文件系统
-      config.watchOptions = {
-        poll: process.env.WATCHPACK_POLLING === 'true' ? 1000 : 5000, // 根据环境变量调整轮询频率
-        aggregateTimeout: 300,
-        ignored: /node_modules/,
-      }
-
-      // 针对挂载文件系统的特殊配置
-      config.snapshot = {
-        managedPaths: [],
-        immutablePaths: [],
-      }
-
-      // 确保文件系统缓存被禁用以支持热更新
-      config.cache = false
-    }
-    return config
-  }, */
-
+  // 其他配置...
+  allowedDevOrigins: [
+    'local-origin.dev',
+    '*.local-origin.dev',
+    'http://localhost:3000',
+    'http://localhost:3001',      // ← 加上这个
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+    'http://172.30.16.95:3000',
+    'http://172.30.16.95:3001',   // ← 也建议加上
+  ],
   // WebView 专用配置
   async headers() {
     return [

@@ -17,7 +17,7 @@ export default function Home() {
             className="text-blue-500 hover:text-blue-600 transition-colors rounded-lg"
           />
           <h1 className="text-2xl p-2 bg-gradient-to-r from-red-400 to-blue-300 bg-clip-text text-transparent">
-            意见反馈
+            意见反馈2
           </h1>
         </div>
 

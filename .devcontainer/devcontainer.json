@@ -1,12 +1,11 @@
 {
     "name": "Punch Development",
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:22",
-
-    "postCreateCommand": "npm install", // I suggest commenting it. It takes a long time unneccssary
-
+    "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+    "postCreateCommand": "npm install && npx prisma generate", // I suggest commenting it. It takes a long time unneccssary
     // 🔒 安全配置 - 不直接挂载 SSH
     "mounts": [
         // 注释掉 SSH 挂载，让每个开发者管理自己的密钥
         // "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached"
-    ]
+    ],
+    "remoteUser": "root" // 新增这一行
 }

@@ -11,8 +11,6 @@ out/
 # 生产环境不需要的文件
 README.md
 learn/
-BIDLINK_DEBUG.md
-CONSOLE_DEBUG_GUIDE.md
 .gitignore
 .eslintrc.json
 
