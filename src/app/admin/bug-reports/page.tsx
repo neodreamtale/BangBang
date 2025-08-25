@@ -16,9 +16,9 @@ export default async function AdminPage() {
         <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">步骤</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">优先级</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">崩溃日志</th>
@@ -31,11 +31,15 @@ export default async function AdminPage() {
                 <tr key={report.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <Link href={`/admin/crash-logs?userId=${report.userId || ''}`} className="text-blue-600 hover:underline">
-                      {report.id}
+                      {report.userId}
                     </Link>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.description}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.steps}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.userId || 'Anonymous'}</td>
+
+
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${report.status === 'open'
