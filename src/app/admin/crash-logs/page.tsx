@@ -1,43 +1,74 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, FileText, Download } from 'lucide-react'
+import { ArrowLeft, FileText } from 'lucide-react'
 
 interface CrashLog {
   fileName: string
+  deviceId: string
   uploadTime: string
   fileSize: number
   fileSizeReadable: string
 }
 
+
 export default function CrashLogsAdmin() {
-  const [logs, setLogs] = useState<CrashLog[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [logs, setLogs] = useState<CrashLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [fileContent, setFileContent] = useState<string>('');
+  const [fileLoading, setFileLoading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId');
 
   useEffect(() => {
-    fetchCrashLogs()
-  }, [])
+    fetchCrashLogs(userId);
+  }, [userId]);
 
-  const fetchCrashLogs = async () => {
+  const fetchCrashLogs = async (userId: string | null = "") => {
     try {
-      const response = await fetch('/api/crash-logs')
+      const url = `/api/crash-logs?userId=${userId}`;
+      const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('获取日志列表失败')
+        throw new Error('获取日志列表失败');
       }
-      const data = await response.json()
-      setLogs(data.files)
+      const data = await response.json();
+      setLogs(data.files);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '未知错误')
+      setError(err instanceof Error ? err.message : '未知错误');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const fetchFileContent = async (filePath: string) => {
+    setFileLoading(true);
+    setFileError(null);
+    setFileContent('');
+    setSelectedFile(filePath);
+    try {
+      // 这里假设有 /api/download/[filename] 路由可以返回原始内容
+      // filePath 形如 uploads/crash-logs/xxx/xxx.jsonl
+      const filename = filePath.replace('uploads/crash-logs/', '');
+      const url = `/api/download/${encodeURIComponent(filename)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('获取文件内容失败');
+      const text = await res.text();
+      setFileContent(text);
+    } catch (e: unknown) {
+      console.error(e)
+    } finally {
+      setFileLoading(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('zh-CN')
-  }
+    return new Date(dateString).toLocaleString('zh-CN');
+  };
 
   if (loading) {
     return (
@@ -56,7 +87,7 @@ export default function CrashLogsAdmin() {
         <div className="text-center text-red-500">
           <p>错误: {error}</p>
           <button
-            onClick={fetchCrashLogs}
+            onClick={() => fetchCrashLogs(userId)}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             重试
@@ -84,7 +115,7 @@ export default function CrashLogsAdmin() {
             </h1>
           </div>
           <button
-            onClick={fetchCrashLogs}
+            onClick={() => fetchCrashLogs(userId)}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             刷新
@@ -102,10 +133,10 @@ export default function CrashLogsAdmin() {
               <p className="text-2xl font-bold text-green-600">
                 {logs.reduce((acc, log) => acc + log.fileSize, 0) > 0
                   ? (
-                      logs.reduce((acc, log) => acc + log.fileSize, 0) /
-                      1024 /
-                      1024
-                    ).toFixed(1) + ' MB'
+                    logs.reduce((acc, log) => acc + log.fileSize, 0) /
+                    1024 /
+                    1024
+                  ).toFixed(1) + ' MB'
                   : '0 MB'}
               </p>
               <p className="text-gray-600 dark:text-gray-400">总文件大小</p>
@@ -129,16 +160,10 @@ export default function CrashLogsAdmin() {
                       文件名
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      设备ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       上传时间
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                       文件大小
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      操作
                     </th>
                   </tr>
                 </thead>
@@ -151,9 +176,12 @@ export default function CrashLogsAdmin() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <FileText size={16} className="text-gray-400 mr-2" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <button
+                            className="text-xs font-mono text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-100"
+                            onClick={() => fetchFileContent(log.fileName)}
+                          >
                             {log.fileName}
-                          </span>
+                          </button>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -161,16 +189,6 @@ export default function CrashLogsAdmin() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {log.fileSizeReadable}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <a
-                          href={`/api/download/${log.fileName}`}
-                          download
-                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1"
-                        >
-                          <Download size={16} />
-                          下载
-                        </a>
                       </td>
                     </tr>
                   ))}
@@ -180,6 +198,23 @@ export default function CrashLogsAdmin() {
           )}
         </div>
       </div>
+      {/* 文件内容展示区域 */}
+      <div className="max-w-6xl mx-auto mt-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          {selectedFile && (
+            <div className="mb-2 text-xs text-gray-500 break-all">{selectedFile}</div>
+          )}
+          {fileLoading ? (
+            <div className="text-blue-500">加载中...</div>
+          ) : fileError ? (
+            <div className="text-red-500">{fileError}</div>
+          ) : fileContent ? (
+            <pre className="whitespace-pre-wrap text-xs bg-gray-100 dark:bg-gray-900 p-4 rounded overflow-x-auto max-h-96">{fileContent}</pre>
+          ) : (
+            <div className="text-gray-400">点击文件名可查看内容</div>
+          )}
+        </div>
+      </div>
     </div>
-  )
+  );
 }

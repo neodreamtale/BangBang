@@ -1,23 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { filename: string } }
-) {
+export async function GET(_: Request, context: { params: { filename: string } }) {
+  const { filename } = await context.params;
   try {
-    const filename = params.filename
     const filePath = path.join(process.cwd(), 'uploads', 'crash-logs', filename)
-
+    console.info(filename, filePath)
     if (!existsSync(filePath)) {
       return NextResponse.json({ error: '文件不存在' }, { status: 404 })
     }
-
     const fileBuffer = await readFile(filePath)
-
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       headers: {
         'Content-Type': 'application/octet-stream',
         'Content-Disposition': `attachment; filename="${filename}"`,
