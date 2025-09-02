@@ -11,18 +11,19 @@ export default async function AdminPage() {
   })
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Bug 反馈管理222</h1>
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      <h1 className="text-2xl font-bold mb-6">Bug 反馈管理</h1>
+      <div className="bg-white shadow-md rounded-lg overflow-hidden overflow-x-auto">
         <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">步骤</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">优先级</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">崩溃日志</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+              <th className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户ID</th>
+              <th className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">步骤</th>
+              <th className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+              <th className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">描述</th>
+              <th className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">优先级</th>
+              <th className="px-6 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日志</th>
+              <th className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建时间</th>
+              <th className="px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">报告ID</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -30,15 +31,20 @@ export default async function AdminPage() {
               return (
                 <tr key={report.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <Link href={`/admin/crash-logs?userId=${report.userId || ''}`} className="text-blue-600 hover:underline">
-                      {report.userId}
-                    </Link>
+                    {report.crashLogs && report.crashLogs.length > 0 ? (
+                      <Link href={`/admin/crash-logs?userId=${report.userId}`} className="text-blue-600 hover:underline">
+                        {report.userId || 'Anonymous'}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-400">{report.userId || 'Anonymous'}</span>
+                    )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.description}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.steps}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.userId || 'Anonymous'}</td>
-
-
+                  <td className="px-6 py-4 text-sm text-gray-900 min-w-[8rem] max-w-[22rem]">
+                    <div className="break-all line-clamp-6">{report.description}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 min-w-[8rem] max-w-[22rem]">
+                    <div className="break-all line-clamp-6">{report.steps}</div>
+                  </td>
 
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -67,7 +73,7 @@ export default async function AdminPage() {
                     </span>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 min-w-[4rem]">
                     {report.crashLogs && report.crashLogs.length > 0 ? (
                       <span className="text-green-600">有</span>
                     ) : (
@@ -77,6 +83,7 @@ export default async function AdminPage() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(report.createdAt).toLocaleString('zh-CN')}
                   </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.id}</td>
                 </tr>
               )
             })}

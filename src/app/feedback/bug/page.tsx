@@ -15,7 +15,7 @@ export default function BugFeedback() {
 
   // 使用 useActionState 来处理表单提交
   const [state, submitAction, isPending] = useActionState(
-    async (prevState: any, formData: FormData) => {
+    async (prevState: { success: boolean; message: string }, formData: FormData) => {
       setUploadProgress(25)
       try {
         // 如果在 Bidlink 环境中，尝试读取最新的崩溃日志
@@ -37,7 +37,7 @@ export default function BugFeedback() {
         setUploadProgress(100)
         if (result.success) {
           if (window.bidlinkSupport?.onCrashLogUploaded) {
-            // window.bidlinkSupport.onCrashLogUploaded()
+            window.bidlinkSupport.onCrashLogUploaded()
           }
           return {
             success: true,
