@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import Link from 'next/link'
 
 export default async function AdminPage() {
   const bugReports = await prisma.bugReport.findMany({
@@ -28,7 +29,11 @@ export default async function AdminPage() {
             {bugReports.map(report => {
               return (
                 <tr key={report.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{report.id}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <Link href={`/admin/crash-logs?userId=${report.userId || ''}`} className="text-blue-600 hover:underline">
+                      {report.id}
+                    </Link>
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{report.description}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{report.userId || 'Anonymous'}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
