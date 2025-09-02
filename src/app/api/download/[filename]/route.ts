@@ -3,8 +3,8 @@ import { readFile } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
 
-export async function GET(_: Request, context: { params: { filename: string } }) {
-  const { filename } = await context.params;
+export async function GET(_: Request, context: any) {
+  const filename = context?.params?.filename;
   try {
     const filePath = path.join(process.cwd(), 'uploads', 'crash-logs', filename)
     console.info(filename, filePath)

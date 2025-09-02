@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "linux-musl", "windows"]
 }
 
 datasource db {
@@ -11,15 +12,15 @@ datasource db {
 }
 
 model BugReport {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   description String
   steps       String?
   contact     String?
   userId      String?
-  status      String   @default("open") // open, in-progress, resolved, closed
-  priority    String   @default("medium") // low, medium, high, critical
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String     @default("open") // open, in-progress, resolved, closed
+  priority    String     @default("medium") // low, medium, high, critical
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   crashLogs   CrashLog[]
 
   @@map("bug_reports")
@@ -38,14 +39,14 @@ model SuggestionReport {
 }
 
 model CrashLog {
-  id          String    @id @default(cuid())
-  userId      String?
-  filename    String
+  id            String     @id @default(cuid())
+  userId        String?
+  filename      String
   extractedPath String?
-  fileSize    Int
-  uploadedAt  DateTime  @default(now())
-  bugReportId String?
-  bugReport   BugReport? @relation(fields: [bugReportId], references: [id])
+  fileSize      Int
+  uploadedAt    DateTime   @default(now())
+  bugReportId   String?
+  bugReport     BugReport? @relation(fields: [bugReportId], references: [id])
 
   @@map("crash_logs")
 }
