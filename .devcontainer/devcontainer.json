@@ -1,11 +1,7 @@
 {
-    "name": "Punch Development",
-    "image": "mcr.microsoft.com/devcontainers/typescript-node:22",
-    "postCreateCommand": "npm install && npx prisma generate", // I suggest commenting it. It takes a long time unneccssary
-    // 🔒 安全配置 - 不直接挂载 SSH
-    "mounts": [
-        // 注释掉 SSH 挂载，让每个开发者管理自己的密钥
-        // "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,consistency=cached"
-    ],
-    "remoteUser": "root" // 新增这一行
+    "name": "PD",
+    "dockerComposeFile": "../docker-compose.dev.yml", // 指定 compose 文件路径
+    "service": "dev-0818", // 指定服务名，与你 compose 文件里的 service 名一致
+    "workspaceFolder": "/app", // 容器内的工作目录，与你 compose 里的挂载一致
+    "postCreateCommand": "npm install && npx prisma generate",
 }

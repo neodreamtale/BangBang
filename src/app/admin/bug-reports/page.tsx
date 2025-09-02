@@ -10,7 +10,7 @@ export default async function AdminPage() {
   })
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Bug 反馈管理</h1>
+      <h1 className="text-2xl font-bold mb-6">Bug 反馈管理222</h1>
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full">
           <thead className="bg-gray-50">

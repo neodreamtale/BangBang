@@ -1,23 +1,21 @@
 version: '3.8'
 
 services:
-  punch-app-dev:
+  punch-0818:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: punch-feedback-app-dev
+    container_name: dev-0818
     ports:
-      - '3001:3001'
+      - '3000:3000'
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
       - CHOKIDAR_USEPOLLING=true
     volumes:
-      # 挂载源代码，支持热重载
       - .:/app
-      - /app/node_modules # 避免覆盖容器内的 node_modules
-      - /app/.next # 避免覆盖构建缓存
-      # 挂载Windows用户目录的 SSH 密钥
+      - /app/node_modules
+      - /app/.next
       - ~/.ssh:/root/.ssh
     restart: unless-stopped
     command: npm run dev

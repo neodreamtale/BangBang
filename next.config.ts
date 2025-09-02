@@ -11,13 +11,12 @@ const nextConfig: NextConfig = {
   // 其他配置...
   allowedDevOrigins: [
     'local-origin.dev',
-    '*.local-origin.dev',
     'http://localhost:3000',
-    'http://localhost:3001',      // ← 加上这个
+    'http://localhost:3001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
     'http://172.30.16.95:3000',
-    'http://172.30.16.95:3001',   // ← 也建议加上
+    'http://172.30.16.95:3001',
   ],
   // WebView 专用配置
   async headers() {
