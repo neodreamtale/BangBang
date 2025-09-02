@@ -43,3 +43,6 @@ next-env.d.ts
 
 
 devcontainer_*
+./prisma/*.db
+
+# Local sqlite DB\nprisma/dev.db
