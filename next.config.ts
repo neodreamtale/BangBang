@@ -21,9 +21,9 @@ const nextConfig: NextConfig = {
   // WebView 专用配置
   async headers() {
     return [
-      // 为上传的文件添加下载头
+      // 为上传的文件添加下载头（包含 basePath /fb）
       {
-        source: '/uploads/(.*)',
+        source: '/fb/uploads/(.*)',
         headers: [
           {
             key: 'Content-Disposition',
@@ -35,9 +35,9 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // 为所有静态资源添加 CORS 头
+      // 为所有静态资源添加 CORS 头（包含 basePath /fb）
       {
-        source: '/_next/static/(.*)',
+        source: '/fb/_next/static/(.*)',
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
@@ -57,9 +57,9 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // 为所有 Next.js 内部资源添加 CORS
+      // 为所有 Next.js 内部资源添加 CORS（包含 basePath /fb）
       {
-        source: '/_next/(.*)',
+        source: '/fb/_next/(.*)',
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
@@ -75,9 +75,9 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      // 为页面添加 WebView 兼容头
+      // 为页面添加 WebView 兼容头（仅匹配 basePath 下页面）
       {
-        source: '/(.*)',
+        source: '/fb/(.*)',
         headers: [
           {
             key: 'X-Frame-Options',
@@ -97,6 +97,9 @@ const nextConfig: NextConfig = {
   },
 
   // Docker 部署配置
+  // 在应用内部使用 /fb 作为 basePath（请在 build 时生效）
+  basePath: '/fb',
+  assetPrefix: '/fb',
   output: 'standalone',
 
   // 优化静态资源
