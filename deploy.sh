@@ -21,6 +21,13 @@ docker rm $CONTAINER_NAME 2>/dev/null || true
 echo "🔨 构建 Docker 镜像..."
 docker build -t $IMAGE_NAME:latest .
 
+HOST_DB_PARENT=/app/programs/BangBang
+mkdir -p "$HOST_DB_PARENT"
+if [ ! -f "$HOST_DB_PARENT/prod.db" ]; then
+  touch "$HOST_DB_PARENT/prod.db"
+  chmod 644 "$HOST_DB_PARENT/prod.db"
+fi
+
 run_migrations() {
   docker run --rm \
     -v $(pwd):/app \
@@ -34,14 +41,6 @@ run_migrations() {
 # Only run migrations in non-development (production-like) environments
 if [ "$ENVIRONMENT" != "development" ]; then
   echo "📦 在生产环境运行 prisma migrate deploy（短期 node 容器）..."
-  # Backup prod.db if present
-  if [ -f /app/programs/BangBang/prod.db ]; then
-    cp /app/programs/BangBang/prod.db /app/programs/BangBang/prod.db.bak.$(date +%s)
-    echo "🔒 已备份 /app/programs/BangBang/prod.db"
-  else
-    echo "⚠️ /app/programs/BangBang/prod.db 未找到，迁移将对空数据库执行（请确认）"
-  fi
-
   if run_migrations; then
     echo "✅ 数据库迁移完成"
   else
