@@ -21,6 +21,24 @@ docker rm $CONTAINER_NAME 2>/dev/null || true
 echo "🔨 构建 Docker 镜像..."
 docker build -t $IMAGE_NAME:latest .
 
+run_migrations() {
+  docker run --rm \
+    -v $(pwd):/app \
+    -v /app/programs/BangBang/prod.db:/app/prod.db \
+    -w /app \
+    -e DATABASE_URL=file:/app/prod.db \
+    node:22-alpine \
+    sh -c "apk add --no-cache libc6-compat python3 make g++ && npm ci --production && npx prisma migrate deploy"
+}
+
+echo "Running migrations..."
+if run_migrations; then
+  echo "migrations ok"
+else
+  echo "migrations failed" >&2
+  exit 1
+fi
+
 # 清理旧镜像
 echo "🧹 清理旧镜像..."
 docker image prune -f
