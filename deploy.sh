@@ -31,12 +31,25 @@ run_migrations() {
     sh -c "apk add --no-cache libc6-compat python3 make g++ && npm ci --production && npx prisma migrate deploy"
 }
 
-echo "Running migrations..."
-if run_migrations; then
-  echo "migrations ok"
+# Only run migrations in non-development (production-like) environments
+if [ "$ENVIRONMENT" != "development" ]; then
+  echo "📦 在生产环境运行 prisma migrate deploy（短期 node 容器）..."
+  # Backup prod.db if present
+  if [ -f /app/programs/BangBang/prod.db ]; then
+    cp /app/programs/BangBang/prod.db /app/programs/BangBang/prod.db.bak.$(date +%s)
+    echo "🔒 已备份 /app/programs/BangBang/prod.db"
+  else
+    echo "⚠️ /app/programs/BangBang/prod.db 未找到，迁移将对空数据库执行（请确认）"
+  fi
+
+  if run_migrations; then
+    echo "✅ 数据库迁移完成"
+  else
+    echo "❌ 数据库迁移失败" >&2
+    exit 1
+  fi
 else
-  echo "migrations failed" >&2
-  exit 1
+  echo "跳过迁移（development 环境）"
 fi
 
 # 清理旧镜像
@@ -56,15 +69,16 @@ if [ "$ENVIRONMENT" = "development" ]; then
         $IMAGE_NAME:latest
 else
     # 生产环境
-    docker run -d \
-        --name $CONTAINER_NAME \
-        --env-file /app/programs/BangBang/.env.production \
-        -v /app/programs/BangBang/prod.db:/app/prod.db \
-        -p 3000:3000 \
-        -e NODE_ENV=production \
-        -e NEXT_TELEMETRY_DISABLED=1 \
-        --restart unless-stopped \
-        $IMAGE_NAME:latest
+  docker run -d \
+    --name $CONTAINER_NAME \
+    --env-file /app/programs/BangBang/.env.production \
+    -e DATABASE_URL=file:/app/prod.db \
+    -v /app/programs/BangBang/prod.db:/app/prod.db \
+    -p 3000:3000 \
+    -e NODE_ENV=production \
+    -e NEXT_TELEMETRY_DISABLED=1 \
+    --restart unless-stopped \
+    $IMAGE_NAME:latest
 fi
 
 # 等待应用启动
