@@ -24,9 +24,11 @@ docker build -t $IMAGE_NAME:latest .
 HOST_DB_PARENT=/app/programs/BangBang
 mkdir -p "$HOST_DB_PARENT"
 if [ ! -f "$HOST_DB_PARENT/prod.db" ]; then
-  touch "$HOST_DB_PARENT/prod.db"
-  chmod 644 "$HOST_DB_PARENT/prod.db"
+  # 原子创建并设置属主/模式（需要以 root 运行 deploy.sh）
+  install -o 1001 -g 1001 -m 660 /dev/null "$HOST_DB_PARENT/prod.db"
 fi
+chown 1001:1001 "$HOST_DB_PARENT" 2>/dev/null || true
+chmod 750 "$HOST_DB_PARENT" 2>/dev/null || true
 
 run_migrations() {
   docker run --rm \
@@ -35,7 +37,7 @@ run_migrations() {
     -w /app \
     -e DATABASE_URL=file:/app/prod.db \
     node:22-alpine \
-    sh -c "apk add --no-cache libc6-compat python3 make g++ && npm ci --production && npx prisma migrate deploy"
+    sh -c "apk add --no-cache libc6-compat python3 make g++ && npm ci --omit=dev && npx prisma migrate deploy"
 }
 
 # Only run migrations in non-development (production-like) environments
