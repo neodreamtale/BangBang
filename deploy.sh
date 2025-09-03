@@ -40,6 +40,8 @@ else
     # 生产环境
     docker run -d \
         --name $CONTAINER_NAME \
+        --env-file /app/programs/BangBang/.env.production \
+        -v /app/programs/BangBang/prod.db:/app/prod.db \
         -p 3000:3000 \
         -e NODE_ENV=production \
         -e NEXT_TELEMETRY_DISABLED=1 \
