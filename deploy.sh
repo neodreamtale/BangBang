@@ -17,32 +17,51 @@ echo "🛑 停止现有容器..."
 docker stop $CONTAINER_NAME 2>/dev/null || true
 docker rm $CONTAINER_NAME 2>/dev/null || true
 
-# 构建新镜像
 echo "🔨 构建 Docker 镜像..."
 docker build -t $IMAGE_NAME:latest .
 
-HOST_DB_PARENT=/app/programs/BangBang
+# Host directory that will contain prod.db (adjust if your host uses a different path)
+HOST_DB_PARENT=${HOST_DB_PARENT:-/app/programs/BangBang}
+
+# ensure parent exists
 mkdir -p "$HOST_DB_PARENT"
+
+# Safety checks: abort if prod.db is a directory or a mount point on the host
+if [ -d "$HOST_DB_PARENT/prod.db" ]; then
+  echo "ERROR: $HOST_DB_PARENT/prod.db is a directory on the host. Expected a file. Aborting."
+  exit 1
+fi
+
+if [ -r /proc/mounts ] && grep -q " $HOST_DB_PARENT/prod.db " /proc/mounts; then
+  echo "ERROR: $HOST_DB_PARENT/prod.db appears in /proc/mounts (a mount point). Unmount or choose another path. Aborting."
+  exit 1
+fi
+
+# Create the DB file atomically if it doesn't exist and set ownership/permissions for UID 1001
 if [ ! -f "$HOST_DB_PARENT/prod.db" ]; then
-  # 原子创建并设置属主/模式（需要以 root 运行 deploy.sh）
+  echo "Creating $HOST_DB_PARENT/prod.db ..."
+  # install is atomic and sets owner/mode in one step (requires root)
   install -o 1001 -g 1001 -m 660 /dev/null "$HOST_DB_PARENT/prod.db"
 fi
+
+# Normalize permisssions on parent dir
 chown 1001:1001 "$HOST_DB_PARENT" 2>/dev/null || true
 chmod 750 "$HOST_DB_PARENT" 2>/dev/null || true
 
 run_migrations() {
+  echo "Running migrations in short-lived container (uses host DB at $HOST_DB_PARENT/prod.db)..."
   docker run --rm \
-    -v $(pwd):/app \
-    -v /app/programs/BangBang/prod.db:/app/prod.db \
+    --env-file /app/programs/BangBang/.env.production \
+    -v "$(pwd)":/app \
+    -v "$HOST_DB_PARENT":/db \
     -w /app \
-    -e DATABASE_URL=file:/app/prod.db \
     node:22-alpine \
     sh -c "apk add --no-cache libc6-compat python3 make g++ && npm ci --omit=dev && npx prisma migrate deploy"
 }
 
 # Only run migrations in non-development (production-like) environments
 if [ "$ENVIRONMENT" != "development" ]; then
-  echo "📦 在生产环境运行 prisma migrate deploy（短期 node 容器）..."
+  echo "📦 运行 prisma migrate deploy（生产环境）..."
   if run_migrations; then
     echo "✅ 数据库迁移完成"
   else
@@ -60,21 +79,20 @@ docker image prune -f
 # 运行新容器
 echo "▶️ 启动新容器..."
 if [ "$ENVIRONMENT" = "development" ]; then
-    # 开发环境：挂载代码目录，支持热重载
-    docker run -d \
-        --name $CONTAINER_NAME \
-        -p 3000:3000 \
-        -e NODE_ENV=development \
-        -v $(pwd):/app \
-        -v /app/node_modules \
-        $IMAGE_NAME:latest
+  # 开发环境：挂载代码目录，支持热重载
+  docker run -d \
+    --name $CONTAINER_NAME \
+    -p 3000:3000 \
+    -e NODE_ENV=development \
+    -v "$(pwd)":/app \
+    -v /app/node_modules \
+    $IMAGE_NAME:latest
 else
-    # 生产环境
+  # 生产环境：挂载 host DB 目录到 /db 并通过 env 覆盖 DATABASE_URL
   docker run -d \
     --name $CONTAINER_NAME \
     --env-file /app/programs/BangBang/.env.production \
-    -e DATABASE_URL=file:/app/prod.db \
-    -v /app/programs/BangBang/prod.db:/app/prod.db \
+    -v "$HOST_DB_PARENT":/db \
     -p 3000:3000 \
     -e NODE_ENV=production \
     -e NEXT_TELEMETRY_DISABLED=1 \
@@ -82,22 +100,15 @@ else
     $IMAGE_NAME:latest
 fi
 
-# 等待应用启动
+# 等待应用启动并检查状态
 echo "⏳ 等待应用启动..."
 sleep 10
 
-# 检查应用状态
 if docker ps | grep -q $CONTAINER_NAME; then
-    echo "✅ 部署成功！"
-    echo "🌐 应用访问地址: http://localhost:3001"
-    echo "📊 容器状态:"
-    docker ps | grep $CONTAINER_NAME
-    echo ""
-    echo "📋 查看日志: docker logs $CONTAINER_NAME"
-    echo "🛑 停止应用: docker stop $CONTAINER_NAME"
+  echo "✅ 部署成功！"
+  echo "📋 查看日志: docker logs $CONTAINER_NAME"
 else
-    echo "❌ 部署失败！"
-    echo "📋 查看错误日志:"
-    docker logs $CONTAINER_NAME
-    exit 1
+  echo "❌ 部署失败！查看容器日志以排查问题："
+  docker logs $CONTAINER_NAME || true
+  exit 1
 fi
