@@ -49,14 +49,18 @@ chown 1001:1001 "$HOST_DB_PARENT" 2>/dev/null || true
 chmod 750 "$HOST_DB_PARENT" 2>/dev/null || true
 
 run_migrations() {
-  echo "Running migrations in short-lived container (uses host DB at $HOST_DB_PARENT/prod.db)..."
+  echo "Running migrations using a cached deps-stage helper image (faster)..."
+  # Build a small helper image from the Dockerfile 'deps' stage. This will reuse Docker cache
+  # across builds and avoids running `npm ci` inside a ephemeral container every deploy.
+  docker build --target deps -t "$IMAGE_NAME:migrate" . >/dev/null
+
   docker run --rm \
     --env-file /app/programs/BangBang/.env.production \
     -v "$(pwd)":/app \
     -v "$HOST_DB_PARENT":/db \
     -w /app \
-    node:22-alpine \
-    sh -c "apk add --no-cache libc6-compat python3 make g++ && npm ci --omit=dev && npx prisma migrate deploy"
+    "$IMAGE_NAME:migrate" \
+    sh -c "npx prisma migrate deploy"
 }
 
 # Only run migrations in non-development (production-like) environments
@@ -93,6 +97,7 @@ else
     --name $CONTAINER_NAME \
     --env-file /app/programs/BangBang/.env.production \
     -v "$HOST_DB_PARENT":/db \
+    -v /app/programs/BangBang/uploads:/app/uploads \
     -p 3000:3000 \
     -e NODE_ENV=production \
     -e NEXT_TELEMETRY_DISABLED=1 \
