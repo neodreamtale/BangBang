@@ -28,9 +28,6 @@ RUN if [ -f prisma/schema.prisma ]; then \
     fi
 
 
-# Ensure uploads directory exists and is writable by the non-root nextjs user (UID 1001)
-RUN mkdir -p /app/uploads && chown -R 1001:1001 /app/uploads && chmod 750 /app/uploads
-
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
@@ -67,6 +64,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Ensure uploads directory exists in the runtime image and is writable by UID 1001
+RUN mkdir -p /app/uploads && chown -R 1001:1001 /app/uploads && chmod 770 /app/uploads
 
 USER nextjs
 EXPOSE 3000

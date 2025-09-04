@@ -48,6 +48,24 @@ fi
 chown 1001:1001 "$HOST_DB_PARENT" 2>/dev/null || true
 chmod 750 "$HOST_DB_PARENT" 2>/dev/null || true
 
+# Ensure host uploads directory exists and is writable by UID 1001
+HOST_UPLOADS_PARENT=${HOST_UPLOADS_PARENT:-/app/programs/BangBang/uploads}
+mkdir -p "$HOST_UPLOADS_PARENT"
+
+# Safety checks for uploads path
+if [ -f "$HOST_UPLOADS_PARENT" ] && [ ! -d "$HOST_UPLOADS_PARENT" ]; then
+  echo "ERROR: $HOST_UPLOADS_PARENT exists and is not a directory. Aborting."
+  exit 1
+fi
+if [ -r /proc/mounts ] && grep -q " $HOST_UPLOADS_PARENT " /proc/mounts; then
+  echo "ERROR: $HOST_UPLOADS_PARENT appears in /proc/mounts (a mount point). Unmount or choose another path. Aborting."
+  exit 1
+fi
+
+# Ensure ownership/permissions allow UID 1001 to create subfolders
+chown -R 1001:1001 "$HOST_UPLOADS_PARENT" 2>/dev/null || true
+chmod 770 "$HOST_UPLOADS_PARENT" 2>/dev/null || true
+
 run_migrations() {
   echo "Running migrations using a cached deps-stage helper image (faster)..."
   # Build a small helper image from the Dockerfile 'deps' stage. This will reuse Docker cache
@@ -97,7 +115,7 @@ else
     --name $CONTAINER_NAME \
     --env-file /app/programs/BangBang/.env.production \
     -v "$HOST_DB_PARENT":/db \
-    -v /app/programs/BangBang/uploads:/app/uploads \
+    -v "$HOST_UPLOADS_PARENT":/app/uploads \
     -p 3000:3000 \
     -e NODE_ENV=production \
     -e NEXT_TELEMETRY_DISABLED=1 \
