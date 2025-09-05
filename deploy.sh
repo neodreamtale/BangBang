@@ -18,7 +18,9 @@ docker stop $CONTAINER_NAME 2>/dev/null || true
 docker rm $CONTAINER_NAME 2>/dev/null || true
 
 echo "🔨 构建 Docker 镜像..."
-docker build -t $IMAGE_NAME:latest .
+# Allow overriding NEXT_PUBLIC_BASE_PATH via environment; default to /fb
+: "${NEXT_PUBLIC_BASE_PATH:=/fb}"
+docker build --build-arg NEXT_PUBLIC_BASE_PATH="$NEXT_PUBLIC_BASE_PATH" -t $IMAGE_NAME:latest .
 
 # Host directory that will contain prod.db (adjust if your host uses a different path)
 HOST_DB_PARENT=${HOST_DB_PARENT:-/app/programs/BangBang}
@@ -106,6 +108,7 @@ if [ "$ENVIRONMENT" = "development" ]; then
     --name $CONTAINER_NAME \
     -p 3000:3000 \
     -e NODE_ENV=development \
+    -e NEXT_PUBLIC_BASE_PATH="$NEXT_PUBLIC_BASE_PATH" \
     -v "$(pwd)":/app \
     -v /app/node_modules \
     $IMAGE_NAME:latest
@@ -114,6 +117,7 @@ else
   docker run -d \
     --name $CONTAINER_NAME \
     --env-file /app/programs/BangBang/.env.production \
+    -e NEXT_PUBLIC_BASE_PATH="$NEXT_PUBLIC_BASE_PATH" \
     -v "$HOST_DB_PARENT":/db \
     -v "$HOST_UPLOADS_PARENT":/app/uploads \
     -p 3000:3000 \

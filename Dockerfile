@@ -1,4 +1,5 @@
 FROM node:22-alpine AS base
+ARG NEXT_PUBLIC_BASE_PATH
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -34,6 +35,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Make NEXT_PUBLIC_BASE_PATH available during the build step so that
+# code using process.env.NEXT_PUBLIC_BASE_PATH is inlined into the bundle.
+ARG NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH}
+
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
@@ -49,6 +55,10 @@ RUN \
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
+
+# Make NEXT_PUBLIC_BASE_PATH available at runtime too (optional)
+ARG NEXT_PUBLIC_BASE_PATH
+ENV NEXT_PUBLIC_BASE_PATH=${NEXT_PUBLIC_BASE_PATH}
 
 ENV NODE_ENV=production
 #Uncomment the following line in case you want to disable telemetry during runtime.
