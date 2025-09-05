@@ -103,7 +103,7 @@ export default function CrashLogsClient() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                         <Link
-                            href={withBasePath('/')}
+                            href='/'
                             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                         >
                             <ArrowLeft size={20} />
