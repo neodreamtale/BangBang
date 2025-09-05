@@ -5,6 +5,7 @@ import { ArrowLeft, MessageSquare } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useState, useEffect } from "react";
+import withBasePath from '@/lib/basePath'
 
 export default function GeneralFeedback() {
     const { theme } = useTheme();
@@ -22,7 +23,7 @@ export default function GeneralFeedback() {
 
             <div className="max-w-2xl mx-auto">
                 {/* 返回按钮 */}
-                <Link href="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary mb-8 transition-colors">
+                <Link href={withBasePath('/')} className="inline-flex items-center gap-2 text-text-secondary hover:text-primary mb-8 transition-colors">
                     <ArrowLeft size={20} />
                     返回首页
                 </Link>
@@ -175,7 +176,7 @@ export default function GeneralFeedback() {
                             提交反馈
                         </button>
                         <Link
-                            href="/"
+                            href={withBasePath('/')}
                             className="flex-1 bg-secondary text-text-secondary py-3 px-6 rounded-lg hover:bg-secondary/80 transition-colors font-medium text-center"
                         >
                             取消

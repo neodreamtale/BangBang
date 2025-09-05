@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import withBasePath from '@/lib/basePath'
 import { ArrowLeft, FileText } from 'lucide-react'
 
 interface CrashLog {
@@ -31,7 +32,7 @@ export default function CrashLogsClient() {
 
     const fetchCrashLogs = async (userId: string | null = "") => {
         try {
-            const url = `/api/crash-logs?userId=${userId}`;
+            const url = withBasePath(`/api/crash-logs?userId=${userId}`);
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error('获取日志列表失败');
@@ -52,7 +53,7 @@ export default function CrashLogsClient() {
         setSelectedFile(filePath);
         try {
             const filename = filePath.replace('uploads/crash-logs/', '');
-            const url = `/api/download/${encodeURIComponent(filename)}`;
+            const url = withBasePath(`/api/download/${encodeURIComponent(filename)}`);
             const res = await fetch(url);
             if (!res.ok) throw new Error('获取文件内容失败');
             const text = await res.text();
@@ -102,7 +103,7 @@ export default function CrashLogsClient() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                         <Link
-                            href="/"
+                            href={withBasePath('/')}
                             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                         >
                             <ArrowLeft size={20} />
