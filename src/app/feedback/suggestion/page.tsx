@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import withBasePath from '@/lib/basePath'
+// ...existing code...
 import { ArrowLeft, AlertCircle } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -69,7 +69,7 @@ export default function SuggestionFeedback() {
 
       <div className="flex flex-col justify-start items-center gap-2">
         {/* 返回按钮 */}
-        <Link href={withBasePath('/')} className="flex flex-row justify-start items-center p-2 self-start">
+        <Link href="/" className="flex flex-row justify-start items-center p-2 self-start">
           <ArrowLeft size={20} />
           返回首页
         </Link>
@@ -174,7 +174,7 @@ export default function SuggestionFeedback() {
                 '提交改进建议'
               )}
             </button>
-            <Link href={withBasePath('/')} className="px-8 py-3 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200  transform hover:scale-105 text-center">
+            <Link href="/" className="px-8 py-3 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200  transform hover:scale-105 text-center">
               取消
             </Link>
           </div>
