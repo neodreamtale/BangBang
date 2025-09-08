@@ -101,6 +101,7 @@ const nextConfig: NextConfig = {
   basePath: '/fb',
   assetPrefix: '/fb',
   output: 'standalone',
+  trailingSlash: true,
 
   // 优化静态资源
   images: {
